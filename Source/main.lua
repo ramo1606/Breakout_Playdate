@@ -1,16 +1,119 @@
-import "CoreLibs/graphics"
-
-local pd <const> = playdate
-local gfx <const> = pd.graphics
-
-local playerX, playerY = 200, 120
-local playerRadius = 15
-local playerSpeed = 1.5
-
-function pd.update()
-    gfx.clear()
-    local crankAngle = math.rad(pd.getCrankPosition())
-    playerX += math.sin(crankAngle) * playerSpeed
-    playerY -= math.cos(crankAngle) * playerSpeed
-    gfx.fillCircleAtPoint(playerX, playerY, playerRadius)
-end
+--import "CoreLibs/graphics"
+--
+--local pd <const> = playdate
+--local gfx <const> = pd.graphics
+--
+--local font = gfx.font.new("/System/Fonts/Asheville-Sans-14-Bold.pft")
+--gfx.setFont(font)
+--
+--local mode = "logo"
+--
+--function pd.update()
+--    process_input()
+--    update()
+--    draw()
+--end
+--
+--function process_input()
+--
+--end
+--
+--function update()
+--    if mode=="game" then
+--        update_game()
+--    elseif mode=="logo" then
+--        update_logo()
+--    elseif mode=="start" then
+--        update_start()
+--    elseif mode=="gameover" then
+--        update_gameover()
+--    elseif mode=="levelover" then
+--        update_levelover()
+--    elseif mode=="winner" then
+--        update_winner()
+--    end
+--end
+--
+--function update_logo()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "start"
+--    end
+--end
+--
+--function update_start()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "game"
+--    end
+--end
+--
+--function update_game()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "gameover"
+--    end
+--end
+--
+--function update_gameover()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "levelover"
+--    end
+--end
+--
+--function update_levelover()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "winner"
+--    end
+--end
+--
+--function update_winner()
+--    if pd.buttonJustPressed(pd.kButtonA) then
+--        mode = "start"
+--    end
+--end
+--
+--function draw()
+--    gfx.clear(gfx.kColorWhite)
+--
+--    if mode=="game" then
+--        draw_game()
+--    elseif mode=="logo" then
+--        draw_logo()
+--    elseif mode=="start" then
+--        draw_start()
+--    elseif mode=="gameoverwait" then
+--        draw_game() 
+--    elseif mode=="gameover" then
+--        draw_gameover()
+--    elseif mode=="levelover" then
+--        draw_levelover()
+--    elseif mode=="leveloverwait" then
+--        draw_game()
+--    elseif mode=="winner" then
+--        draw_winner()
+--    elseif mode=="winnerwait" then
+--        draw_game()
+--    end
+--end
+--
+--function draw_logo()
+--    gfx.drawText('Logo', 200, 120)
+--end
+--
+--function draw_start()
+--    gfx.drawText('Start', 200, 120)
+--end
+--
+--function draw_game()
+--    gfx.drawText('Game', 200, 120)
+--end
+--
+--function draw_gameover()
+--    gfx.drawText('Game Over', 200, 120)
+--end
+--
+--function draw_levelover()
+--    gfx.drawText('Level Over', 200, 120)
+--end
+--
+--function draw_winner()
+--    gfx.drawText('Winner', 200, 120)
+--end
