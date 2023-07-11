@@ -1,4 +1,4 @@
-#include "pd_memory_tools.h"
+#include "memory.h"
 
 static PlaydateAPI* pd = NULL;
 void initializeMemoryTools(PlaydateAPI* playdate)

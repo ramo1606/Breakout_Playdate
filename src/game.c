@@ -1,17 +1,12 @@
 #include "game.h"
-#include "pd_memory_tools.h"
+#include "memory.h"
 #include "resource_manager.h"
 #include "ball.h"
 #include "paddle.h"
-#include "enums.h"
+#include "common.h"
 
 #include <stdlib.h>
 #include <math.h>
-
-#define TEXT_WIDTH 86
-#define TEXT_HEIGHT 16
-
-#define MAX_BALLS 3
 
 typedef struct Breakout
 {
@@ -31,8 +26,8 @@ typedef struct Breakout
 	//Effects
 
 	// Game objects
-	LCDBitmap* paddle;
-	//Ball ball[MAX_BALLS];
+	LCDSprite* paddle;
+	LCDSprite* ball;
 
 	//VFX
 
@@ -65,7 +60,8 @@ void create_game(PlaydateAPI* p)
 	//Effects
 
 	// Game objects
-	paddle_create(game.pd, &game.paddle, 200, 230, get_image(game.resources, "paddle"));
+	game.paddle = paddle_create(game.pd, 200.f, 230.f, get_image(game.resources, "paddle"));
+	game.ball = ball_create(game.pd, 100.f, 100.f, get_image(game.resources, "ball"));
 
 	//VFX
 
@@ -141,25 +137,27 @@ void process_input()
 		if (pushed & kButtonA)
 		{
 			game.mode = GAME_OVER;
+			break;
 		}
-		break;
 
+		PDButtons current;
+		game.pd->system->getButtonState(&current, NULL, NULL);
 		bool button_pressed = false;
-
-		if (pushed & kButtonLeft)
+		
+		if (current & kButtonLeft)
 		{
-			paddle_process_input(true, -1);
+			paddle_set_dx(game.paddle, -PADDLE_DX);
 			button_pressed = true;
 		}
-		else if (pushed & kButtonRight)
+		else if (current & kButtonRight)
 		{
-			paddle_process_input(true, 1);
+			paddle_set_dx(game.paddle, PADDLE_DX);
 			button_pressed = true;
 		}
 
 		if (!button_pressed)
 		{
-			paddle_process_input(false, 0);
+			paddle_set_dx(game.paddle, paddle_get_dx(game.paddle)/1.3f);
 		}
 	case GAME_OVER:
 		if (pushed & kButtonA)

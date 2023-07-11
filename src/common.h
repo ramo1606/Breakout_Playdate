@@ -1,5 +1,18 @@
 #pragma once
 
+// Game
+#define TEXT_WIDTH 86
+#define TEXT_HEIGHT 16
+
+#define MAX_BALLS 3
+
+// Paddle
+static const float PADDLE_DX = 6.f;
+
+// Ball
+static const float BALL_DX = 1.f;
+static const float BALL_DY = 1.f;
+
 // Enums
 typedef enum
 {
