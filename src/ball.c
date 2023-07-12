@@ -4,17 +4,15 @@
 
 #include <stdbool.h>
 
-static PlaydateAPI* pd = NULL;
-
 struct BallData
 {
 	float dx;
 	float dy;
 };
 
-LCDSprite* ball_create(PlaydateAPI* playdate, float x, float y, LCDBitmap* image)
+LCDSprite* ball_create(float x, float y, LCDBitmap* image)
 {
-	pd = playdate;
+	PlaydateAPI* pd = get_playdate_API();
 
 	LCDSprite* ball = pd->sprite->newSprite();
 
@@ -51,7 +49,7 @@ void ball_set_dx(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (ball_data)
 		{
 			ball_data->dx = value;
@@ -63,7 +61,7 @@ float ball_get_dx(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (ball_data)
 		{
 			return ball_data->dx;
@@ -75,7 +73,7 @@ void ball_set_dy(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (ball_data)
 		{
 			ball_data->dy = value;
@@ -87,7 +85,7 @@ float ball_get_dy(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (ball_data)
 		{
 			return ball_data->dy;

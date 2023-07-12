@@ -3,7 +3,7 @@
 
 typedef struct BallData BallData;
 
-LCDSprite* ball_create(PlaydateAPI* playdate, float x, float y, LCDBitmap* image);
+LCDSprite* ball_create(float x, float y, LCDBitmap* image);
 void ball_update_sprite(LCDSprite* sprite);
 void ball_set_dx(LCDSprite* sprite, float value);
 float ball_get_dx(LCDSprite* sprite);

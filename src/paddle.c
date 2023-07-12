@@ -2,19 +2,14 @@
 #include "common.h"
 #include "memory.h"
 
-static PlaydateAPI* pd = NULL;
-
 struct PaddleData
 {
 	float dx;
 };
 
-LCDSprite* paddle_create(PlaydateAPI* playdate, float x, float y, LCDBitmap* image)
+LCDSprite* paddle_create(float x, float y, LCDBitmap* image)
 {
-	if(!pd)
-	{
-		pd = playdate;
-	}
+	PlaydateAPI* pd = get_playdate_API();
 
 	// Create new sprite
 	LCDSprite* paddle = pd->sprite->newSprite();
@@ -48,10 +43,10 @@ void paddle_update_sprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
+		PaddleData* paddle_data = (PaddleData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
-			pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+			get_playdate_API()->sprite->moveBy(sprite, paddle_data->dx, 0.f);
 		}
 	}
 }
@@ -65,7 +60,7 @@ void paddle_set_dx(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
+		PaddleData* paddle_data = (PaddleData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
 			paddle_data->dx = value;
@@ -77,7 +72,7 @@ float paddle_get_dx(LCDSprite* sprite)
 {
 	if(sprite)
 	{
-		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
+		PaddleData* paddle_data = (PaddleData*)get_playdate_API()->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
 			return paddle_data->dx;

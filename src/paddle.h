@@ -4,7 +4,7 @@
 
 typedef struct PaddleData PaddleData;
 
-LCDSprite* paddle_create(PlaydateAPI* playdate, float x, float y, LCDBitmap* image);
+LCDSprite* paddle_create(float x, float y, LCDBitmap* image);
 void paddle_update_sprite(LCDSprite* sprite);
 void paddle_set_dx(LCDSprite* sprite, float value);
 float paddle_get_dx(LCDSprite* sprite);

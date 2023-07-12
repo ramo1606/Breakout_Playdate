@@ -1,4 +1,5 @@
 #include "resource_manager.h"
+#include "common.h"
 #include "memory.h" 
 
 #include <stdlib.h>
@@ -18,22 +19,21 @@ struct Resources
 	LCDBitmap* pill;
 };
 
-static PlaydateAPI* pd = NULL;
-LCDBitmap* load_Image_at_path(PlaydateAPI* pd, const char* path)
+static LCDBitmap* load_Image_at_path(const char* path)
 {
 	const char* outErr = NULL;
-	LCDBitmap* img = pd->graphics->loadBitmap(path, &outErr);
+	LCDBitmap* img = get_playdate_API()->graphics->loadBitmap(path, &outErr);
 	if (outErr != NULL) {
-		pd->system->logToConsole("Error loading image at path '%s': %s", path, outErr);
+		get_playdate_API()->system->logToConsole("Error loading image at path '%s': %s", path, outErr);
 	}
 	return img;
 }
 
-Resources* load_resources(PlaydateAPI* playdate)
+Resources* load_resources()
 {
 	Resources* resources = pd_calloc((size_t)1, sizeof(Resources));
-	resources->ball = load_Image_at_path(playdate, "images/ball");
-	resources->paddle = load_Image_at_path(playdate, "images/paddle");
+	resources->ball = load_Image_at_path("images/ball");
+	resources->paddle = load_Image_at_path("images/paddle");
 	//resources->big_paddle = load_Image_at_path(playdate, "images/paddle_large");
 
 	return resources;
