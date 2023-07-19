@@ -1,6 +1,7 @@
 #include "paddle.h"
 #include "common.h"
 #include "memory.h"
+#include "utils.h"
 
 struct PaddleData
 {
@@ -43,10 +44,17 @@ void paddle_update_sprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PaddleData* paddle_data = (PaddleData*)get_playdate_API()->sprite->getUserdata(sprite);
+		PlaydateAPI* pd = get_playdate_API();
+		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
-			get_playdate_API()->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+			pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+
+			float x = 0;
+			float y = 0;
+			pd->sprite->getPosition(sprite, &x, &y);
+			PDRect collision_rect = pd->sprite->getCollideRect(sprite);
+			pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), x, (pd->display->getWidth() - (collision_rect.width / 2))), y);
 		}
 	}
 }

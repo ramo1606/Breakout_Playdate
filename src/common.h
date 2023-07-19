@@ -13,6 +13,7 @@ static const float PADDLE_DX = 6.f;
 // Ball
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
+static const float BALL_SPEED = 2.5f;
 
 //Font
 static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";
