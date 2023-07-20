@@ -35,12 +35,31 @@ LCDSprite* ball_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setTag(ball, BALL);
 
 	// Initialize paddle data
-	BallData* ball_data = pd_malloc(sizeof(BallData));
+	BallData* ball_data = (BallData*)pd_malloc(sizeof(BallData));
 	ball_data->dx = BALL_DX;
 	ball_data->dy = BALL_DY;
 	ball_data->speed = BALL_SPEED;
 	pd->sprite->setUserdata(ball, (void*)ball_data);
 	return ball;
+}
+
+void ball_destroy(LCDSprite* sprite)
+{
+	BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+	pd_free(ball_data);
+	pd_free(sprite);
+}
+
+void ball_reflect(BallData* ball_data, CollisionVector normal)
+{
+	if (normal.x != 0)
+	{
+		ball_data->dx = -ball_data->dx;
+	}
+	if (normal.y != 0)
+	{
+		ball_data->dy = -ball_data->dy;
+	}
 }
 
 void ball_update_sprite(LCDSprite* sprite)
@@ -54,30 +73,11 @@ void ball_update_sprite(LCDSprite* sprite)
 			float x = 0;
 			float y = 0;
 			pd->sprite->getPosition(sprite, &x, &y);
-			int nextx = x + ball_data->dx * ball_data->speed;
-			int nexty = y + ball_data->dy * ball_data->speed;
+
+			float nextx = x + ball_data->dx * ball_data->speed;
+			float nexty = y + ball_data->dy * ball_data->speed;
 
 			PDRect ball_rect = pd->sprite->getCollideRect(sprite);
-			if (nextx + ball_rect.width / 2 >= pd->display->getWidth())
-			{
-				pd->sprite->moveTo(sprite, pd->display->getWidth() - ball_rect.width / 2, y);
-				ball_set_dx(sprite, -abs(ball_data->dx));
-			}
-			if (nextx - ball_rect.width / 2 <= 0)
-			{
-				pd->sprite->moveTo(sprite, 0 + ball_rect.width / 2, y);
-				ball_set_dx(sprite, abs(ball_data->dx));
-			}
-			if (nexty <= 0 + ball_rect.height / 2)
-			{
-				ball_set_dy(sprite, abs(ball_data->dy));
-				pd->sprite->moveTo(sprite, x, 0 + ball_rect.height / 2);
-			}
-			if (nexty >= pd->display->getHeight() - ball_rect.height / 2)
-			{
-				ball_set_dy(sprite, -abs(ball_data->dy));
-				pd->sprite->moveTo(sprite, x, pd->display->getHeight() - ball_rect.height / 2);
-			}
 
 			int len = 0;
 			float actual_x = 0;
@@ -85,9 +85,25 @@ void ball_update_sprite(LCDSprite* sprite)
 			SpriteCollisionInfo* collisions = NULL;
 			collisions = pd->sprite->moveWithCollisions(sprite, nextx, nexty, &actual_x, &actual_y, &len);
 
-			if(collisions)
+			if(len == 1)
 			{
-				ball_set_dy(sprite, -abs(ball_data->dy));
+				pd->sprite->moveTo(sprite, actual_x, actual_y);
+				uint8_t other_tag = pd->sprite->getTag(collisions[0].other);
+
+				if (other_tag == WALL) 
+				{
+					ball_reflect(ball_data, collisions[0].normal);
+				}
+
+				if (other_tag == PADDLE) 
+				{
+					ball_reflect(ball_data, collisions[0].normal);
+				}
+
+				if (other_tag == BRICK) 
+				{
+					ball_reflect(ball_data, collisions[0].normal);
+				}
 			}
 		}
 	}

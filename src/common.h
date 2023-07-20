@@ -15,6 +15,9 @@ static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 2.5f;
 
+// Bricks
+static const float BRICK_HP = 1.f;
+
 //Font
 static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";
 static LCDFont* font = NULL;
@@ -37,8 +40,19 @@ typedef enum
 {
 	PADDLE = 0,
 	BALL = 1,
-	BLOCK = 2,
+	BRICK = 2,
+	WALL = 3
 } SpriteType;
+
+typedef enum
+{
+	EMPTY,
+	REGULAR,
+	INVINCIBLE,
+	HARDENED,
+	SPLODING,
+	POWER
+}BrickType;
 
 void set_playdate_API(PlaydateAPI* playdate);
 PlaydateAPI* get_playdate_API();

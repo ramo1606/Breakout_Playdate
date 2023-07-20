@@ -33,11 +33,18 @@ LCDSprite* paddle_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setTag(paddle, PADDLE);
 
 	// Initialize paddle data
-	PaddleData* paddle_data = pd_malloc(sizeof(PaddleData));
+	PaddleData* paddle_data = (PaddleData*)pd_malloc(sizeof(PaddleData));
 	paddle_data->dx = 0.f;
 	pd->sprite->setUserdata(paddle, (void*)paddle_data);
 
 	return paddle;
+}
+
+void paddle_destroy(LCDSprite* sprite)
+{
+	PaddleData* paddle_data = (PaddleData*)get_playdate_API()->sprite->getUserdata(sprite);
+	pd_free(paddle_data);
+	pd_free(sprite);
 }
 
 void paddle_update_sprite(LCDSprite* sprite)

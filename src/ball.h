@@ -4,6 +4,7 @@
 typedef struct BallData BallData;
 
 LCDSprite* ball_create(float x, float y, LCDBitmap* image);
+void ball_destroy(LCDSprite* sprite);
 void ball_update_sprite(LCDSprite* sprite);
 
 void ball_set_dx(LCDSprite* sprite, float value);
