@@ -3,6 +3,7 @@
 #include "common.h"
 #include "paddle.h"
 #include "ball.h"
+#include "brick.h"
 
 #include <stdbool.h>
 
@@ -31,6 +32,7 @@ struct Game
 	// Game objects
 	LCDSprite* paddle;
 	LCDSprite* ball;
+	LCDSprite** bricks;
 
 	Walls walls;
 
@@ -233,6 +235,12 @@ void create_walls(Game* game)
 	pd->sprite->addSprite(game->walls.Left);
 }
 
+void create_bricks(Game* game, Resources* resources)
+{
+	game->bricks = pd_malloc(sizeof(LCDSprite*));
+	game->bricks[0] = brick_create(15, 15, get_image(resources, "brick"));
+}
+
 Game* game_create(Resources* resources)
 {
 	Game* game = pd_malloc(sizeof(Game));
@@ -240,6 +248,7 @@ Game* game_create(Resources* resources)
 	game->ball = ball_create(100.f, 100.f, get_image(resources, "ball"));
 
 	create_walls(game);
+	create_bricks(game, resources);
 
 	return game;
 }

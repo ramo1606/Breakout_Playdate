@@ -11,11 +11,11 @@ struct Resources
 	LCDBitmap* sticky_paddle;
 	LCDBitmap* ball;
 	LCDBitmap* special_ball;
-	LCDBitmap* normal_block;
-	LCDBitmap* hard_block;
-	LCDBitmap* explosive_block;
-	LCDBitmap* unbreakable_block;
-	LCDBitmap* powerup_block;
+	LCDBitmap* normal_brick;
+	LCDBitmap* hard_brick;
+	LCDBitmap* explosive_brick;
+	LCDBitmap* unbreakable_brick;
+	LCDBitmap* powerup_brick;
 	LCDBitmap* pill;
 };
 
@@ -34,6 +34,7 @@ Resources* load_resources()
 	Resources* resources = pd_calloc((size_t)1, sizeof(Resources));
 	resources->ball = load_Image_at_path("images/ball");
 	resources->paddle = load_Image_at_path("images/paddle");
+	resources->normal_brick = load_Image_at_path("images/brick");
 	//resources->big_paddle = load_Image_at_path(playdate, "images/paddle_large");
 
 	return resources;
@@ -50,10 +51,10 @@ LCDBitmap* get_image(Resources* resources, const char* image)
 	{
 		return_image = resources->ball;
 	}
-	//else if (strcmp(image, "paddle_large") == 0)
-	//{
-	//	return_image = resources->big_paddle;
-	//}
+	else if (strcmp(image, "brick") == 0)
+	{
+		return_image = resources->normal_brick;
+	}
 
 	return return_image;
 }

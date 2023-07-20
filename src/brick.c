@@ -32,13 +32,13 @@ LCDSprite* brick_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setZIndex(brick, 1000);
 	pd->sprite->addSprite(brick);
 
-	pd->sprite->setTag(brick, BALL);
+	pd->sprite->setTag(brick, BRICK);
 
 	// Initialize paddle data
 	BrickData* brick_data = (BrickData*)pd_malloc(sizeof(BrickData));
-	brick_data->dx = BALL_DX;
-	brick_data->dy = BALL_DY;
-	brick_data->hp = BRICK_HP;
+	brick_data->dx = 0;
+	brick_data->dy = 0;
+	brick_data->hp = 1;
 	pd->sprite->setUserdata(brick, (void*)brick_data);
 	return brick;
 }
@@ -113,5 +113,5 @@ float brick_get_dy(LCDSprite* sprite)
 
 SpriteCollisionResponseType brick_collision_response(LCDSprite* sprite, LCDSprite* other)
 {
-	return SpriteCollisionResponseType();
+	return kCollisionTypeBounce;
 }
