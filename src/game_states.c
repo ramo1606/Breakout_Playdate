@@ -4,8 +4,11 @@
 #include "paddle.h"
 #include "ball.h"
 #include "brick.h"
+#include "level.h"
 
+#include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 
 struct Logo 
 {
@@ -213,7 +216,7 @@ void create_walls(Game* game)
 	// `Bottom Wall
 	PDRect bottom_collision_rect = PDRectMake(0.f, 0.f, (float)screen_width, 1.f);
 	pd->sprite->setCollideRect(game->walls.Bottom, bottom_collision_rect);
-	pd->sprite->moveTo(game->walls.Bottom, 0.f, screen_height);
+	pd->sprite->moveTo(game->walls.Bottom, 0.f, (float)screen_height);
 	pd->sprite->setTag(game->walls.Bottom, WALL);
 	pd->sprite->setZIndex(game->walls.Bottom, 1000);
 	pd->sprite->addSprite(game->walls.Bottom);
@@ -221,7 +224,7 @@ void create_walls(Game* game)
 	// Right Wall
 	PDRect right_collision_rect = PDRectMake(0.f, 0.f, 1.f, (float)screen_height);
 	pd->sprite->setCollideRect(game->walls.Right, right_collision_rect);
-	pd->sprite->moveTo(game->walls.Right, screen_width, 0.f);
+	pd->sprite->moveTo(game->walls.Right, (float)screen_width, 0.f);
 	pd->sprite->setTag(game->walls.Right, WALL);
 	pd->sprite->setZIndex(game->walls.Right, 1000);
 	pd->sprite->addSprite(game->walls.Right);
@@ -235,10 +238,68 @@ void create_walls(Game* game)
 	pd->sprite->addSprite(game->walls.Left);
 }
 
-void create_bricks(Game* game, Resources* resources)
+void load_level_bricks(Game* game, Resources* resources)
 {
-	game->bricks = pd_malloc(sizeof(LCDSprite*));
-	game->bricks[0] = brick_create(15, 15, get_image(resources, "brick"));
+	char* current_level = level_get(0);
+	game->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(current_level));
+
+	// b = normal brick
+	// x = empty space
+	// i = indestructable brick
+	// h = hardened brick
+	// s = sploding brick
+	// p = powerup brickf
+
+	char current_brick = NULL;
+	char last_brick = NULL;
+	int z = -1;
+	for (int index = 0; index < strlen(current_level); ++index)
+	{
+		z += 1;
+		current_brick = current_level[index];
+		if (current_brick == 'i' ||
+			current_brick == 'b' ||
+			current_brick == 'h' ||
+			current_brick == 's' ||
+			current_brick == 'p') 
+		{
+			int w, h;
+			get_playdate_API()->graphics->getBitmapData(get_image(resources, "brick"), &w, &h, NULL, NULL, NULL);
+			int x = 80 + ((z - 1) % 11) * (w + 6);
+			int y = 10 + floor((z - 1) / 11) * (h + 4);
+			game->bricks[index] = brick_create(x, y, get_image(resources, "brick"));
+			last_brick = current_brick;
+		}
+		else if (current_brick == 'x') 
+		{
+			last_brick = current_brick;
+		}
+		else if (current_brick == '/') 
+		{
+			z = floor(((z - 1) / 11) + 1) * 11;
+		}
+		else if (current_brick >= '0' && current_brick <= '9')
+		{
+			int tmp = atoi(&current_brick);
+			for (int j = 0; j < tmp; ++j)
+			{
+				if (last_brick == 'i' ||
+					last_brick == 'b' ||
+					last_brick == 'h' ||
+					last_brick == 's' ||
+					last_brick == 'p') 
+				{
+					int w, h;
+					get_playdate_API()->graphics->getBitmapData(get_image(resources, "brick"), &w, &h, NULL, NULL, NULL);
+					int x = 80 + ((z - 1) % 11) * (w + 6);
+					int y = 10 + floor((z - 1) / 11) * (h + 4);
+					game->bricks[index] = brick_create(x, y, get_image(resources, "brick"));
+				}
+				z += 1;
+			}
+			z -= 1;
+		}
+	}
 }
 
 Game* game_create(Resources* resources)
@@ -248,7 +309,7 @@ Game* game_create(Resources* resources)
 	game->ball = ball_create(100.f, 100.f, get_image(resources, "ball"));
 
 	create_walls(game);
-	create_bricks(game, resources);
+	load_level_bricks(game, resources);
 
 	return game;
 }

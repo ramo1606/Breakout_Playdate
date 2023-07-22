@@ -45,7 +45,6 @@ void create_game(PlaydateAPI* p)
 	// Game objects
 	breakout.logo_state = logo_create(breakout.resources);
 	breakout.start_state = start_create(breakout.resources);
-	breakout.game_state = game_create(breakout.resources);
 	breakout.game_over_state = game_over_create(breakout.resources);
 
 	//VFX
@@ -71,6 +70,7 @@ void process_input()
 		if (pushed & kButtonA)
 		{
 			breakout.mode = GAME;
+			breakout.game_state = game_create(breakout.resources);
 		}
 		break;
 	case GAME:

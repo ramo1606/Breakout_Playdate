@@ -55,11 +55,32 @@ void brick_update_sprite(LCDSprite* sprite)
 	if (sprite)
 	{
 		PlaydateAPI* pd = get_playdate_API();
-		BrickData* brick_data = (BrickData*)pd->sprite->getUserdata(sprite);
-		if (brick_data)
-		{
-			
-		}
+
+		//float x = 0;
+		//float y = 0;
+		//pd->sprite->getPosition(sprite, &x, &y);
+		//
+		//float actual_x = 0.f;
+		//float actual_y = 0.f;
+		//int len = 0;
+		//
+		//SpriteCollisionInfo* collisions = NULL;
+		//collisions = pd->sprite->checkCollisions(sprite, x, y, &actual_x, &actual_y, &len);
+		//
+		//if (len == 1) 
+		//{
+		//	uint8_t other_tag = pd->sprite->getTag(collisions[0].other);
+		//	if (other_tag == BALL) 
+		//	{
+		//		pd->sprite->removeSprite(sprite);
+		//		brick_destroy(sprite);
+		//	}
+		//}
+		//BrickData* brick_data = (BrickData*)pd->sprite->getUserdata(sprite);
+		//if (brick_data)
+		//{
+		//	
+		//}
 	}
 }
 

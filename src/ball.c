@@ -1,4 +1,5 @@
 #include "ball.h"
+#include "brick.h"
 #include "memory.h"
 #include "common.h"
 
@@ -102,6 +103,8 @@ void ball_update_sprite(LCDSprite* sprite)
 
 				if (other_tag == BRICK) 
 				{
+					pd->sprite->removeSprite(collisions[0].other);
+					brick_destroy(collisions[0].other);
 					ball_reflect(ball_data, collisions[0].normal);
 				}
 			}
