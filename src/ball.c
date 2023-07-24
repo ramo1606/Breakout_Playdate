@@ -3,13 +3,13 @@
 #include "memory.h"
 #include "common.h"
 
-#include <stdbool.h>
-
 struct BallData
 {
 	float dx;
 	float dy;
 	float speed;
+	bool stuck;
+	bool dead;
 };
 
 LCDSprite* ball_create(float x, float y, LCDBitmap* image)
@@ -40,12 +40,15 @@ LCDSprite* ball_create(float x, float y, LCDBitmap* image)
 	ball_data->dx = BALL_DX;
 	ball_data->dy = BALL_DY;
 	ball_data->speed = BALL_SPEED;
+	ball_data->stuck = false;
+	ball_data->dead = false;
 	pd->sprite->setUserdata(ball, (void*)ball_data);
 	return ball;
 }
 
 void ball_destroy(LCDSprite* sprite)
 {
+	get_playdate_API()->sprite->removeSprite(sprite);
 	BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
 	pd_free(ball_data);
 	pd_free(sprite);
@@ -69,7 +72,7 @@ void ball_update_sprite(LCDSprite* sprite)
 	{
 		PlaydateAPI* pd = get_playdate_API();
 		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
-		if (ball_data)
+		if (ball_data && !ball_is_dead(sprite) && !ball_is_stuck(sprite))
 		{
 			float x = 0;
 			float y = 0;
@@ -93,7 +96,14 @@ void ball_update_sprite(LCDSprite* sprite)
 
 				if (other_tag == WALL) 
 				{
-					ball_reflect(ball_data, collisions[0].normal);
+					if (collisions[0].normal.y == -1) 
+					{
+						ball_data->dead = true;
+					}
+					else 
+					{
+						ball_reflect(ball_data, collisions[0].normal);
+					}
 				}
 
 				if (other_tag == PADDLE) 
@@ -156,6 +166,42 @@ float ball_get_dy(LCDSprite* sprite)
 		if (ball_data)
 		{
 			return ball_data->dy;
+		}
+	}
+}
+
+void ball_set_stuck(LCDSprite* sprite, bool stuck)
+{
+	if (sprite)
+	{
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+		if (ball_data)
+		{
+			ball_data->stuck = stuck;
+		}
+	}
+}
+
+bool ball_is_stuck(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+		if (ball_data)
+		{
+			return ball_data->stuck;
+		}
+	}
+}
+
+bool ball_is_dead(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+		if (ball_data)
+		{
+			return ball_data->dead;
 		}
 	}
 }

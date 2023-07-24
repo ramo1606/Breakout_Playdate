@@ -30,6 +30,9 @@ typedef struct
 
 struct Game 
 {
+	// Resources
+	Resources* resources;
+
 	//Effects
 
 	// Game objects
@@ -75,6 +78,35 @@ struct WinWait
 	int win_wait;
 };
 
+void serve_ball(Game* game)
+{
+	PlaydateAPI* pd = get_playdate_API();
+
+	float paddle_x = 0;
+	float paddle_y = 0;
+	pd->sprite->getPosition(game->paddle, &paddle_x, &paddle_y);
+	PDRect paddle_rect = pd->sprite->getCollideRect(game->paddle);
+
+	game->ball = ball_create(paddle_x, paddle_y - (paddle_rect.width / 2), get_image(game->resources, "ball"));
+
+	//pd->sprite->moveTo(game->ball, paddle_x, paddle_y - (paddle_rect.width / 2));
+	ball_set_stuck(game->ball, true);
+}
+
+void release_stuck(Game* game) 
+{
+	PlaydateAPI* pd = get_playdate_API();
+
+	if (ball_is_stuck(game->ball))
+	{
+		float x = 0;
+		float y = 0;
+		pd->sprite->getPosition(game->ball, &x, &y);
+		pd->sprite->moveTo(game->ball, x, y);
+		ball_set_stuck(game->ball, false);
+	}
+}
+
 void logo_update(Logo* logo)
 {
 }
@@ -85,8 +117,9 @@ void start_update(Start* start)
 
 void game_update(Game* game)
 {
+	PlaydateAPI* pd = get_playdate_API();
 	PDButtons current;
-	get_playdate_API()->system->getButtonState(&current, NULL, NULL);
+	pd->system->getButtonState(&current, NULL, NULL);
 	bool button_pressed = false;
 
 	if (current & kButtonLeft)
@@ -94,18 +127,38 @@ void game_update(Game* game)
 		paddle_set_dx(game->paddle, -PADDLE_DX);
 		button_pressed = true;
 	}
-	else if (current & kButtonRight)
+	if (current & kButtonRight)
 	{
 		paddle_set_dx(game->paddle, PADDLE_DX);
 		button_pressed = true;
 	}
-
+	if (current & kButtonA) 
+	{
+		release_stuck(game);
+	}
+	
 	if (!button_pressed)
 	{
 		paddle_set_dx(game->paddle, paddle_get_dx(game->paddle) / 1.3f);
 	}
 
+	if (ball_is_dead(game->ball))
+	{
+		ball_destroy(game->ball);
+		serve_ball(game);
+	}
+
 	get_playdate_API()->sprite->updateAndDrawSprites();
+
+	if (ball_is_stuck(game->ball))
+	{
+		float pad_x = 0.f;
+		float pad_y = 0.f;
+		pd->sprite->getPosition(game->paddle, &pad_x, &pad_y);
+
+		PDRect ball_rect = pd->sprite->getCollideRect(game->ball);
+		get_playdate_API()->sprite->moveTo(game->ball, pad_x, pad_y - ball_rect.height);
+	}
 }
 
 void game_over_update(GameOver* game_over)
@@ -250,8 +303,8 @@ void load_level_bricks(Game* game, Resources* resources)
 	// s = sploding brick
 	// p = powerup brickf
 
-	char current_brick = NULL;
-	char last_brick = NULL;
+	char current_brick = '\0';
+	char last_brick = '\0';
 	int z = -1;
 	for (int index = 0; index < strlen(current_level); ++index)
 	{
@@ -265,8 +318,8 @@ void load_level_bricks(Game* game, Resources* resources)
 		{
 			int w, h;
 			get_playdate_API()->graphics->getBitmapData(get_image(resources, "brick"), &w, &h, NULL, NULL, NULL);
-			int x = 80 + ((z - 1) % 11) * (w + 6);
-			int y = 10 + floor((z - 1) / 11) * (h + 4);
+			float x = 80 + ((z - 1) % 11) * (w + 6);
+			float y = 10 + (int)floor((z - 1) / 11) * (h + 4);
 			game->bricks[index] = brick_create(x, y, get_image(resources, "brick"));
 			last_brick = current_brick;
 		}
@@ -276,7 +329,7 @@ void load_level_bricks(Game* game, Resources* resources)
 		}
 		else if (current_brick == '/') 
 		{
-			z = floor(((z - 1) / 11) + 1) * 11;
+			z = (int)floor(((z - 1) / 11) + 1) * 11;
 		}
 		else if (current_brick >= '0' && current_brick <= '9')
 		{
@@ -291,8 +344,8 @@ void load_level_bricks(Game* game, Resources* resources)
 				{
 					int w, h;
 					get_playdate_API()->graphics->getBitmapData(get_image(resources, "brick"), &w, &h, NULL, NULL, NULL);
-					int x = 80 + ((z - 1) % 11) * (w + 6);
-					int y = 10 + floor((z - 1) / 11) * (h + 4);
+					float x = 80 + ((z - 1) % 11) * (w + 6);
+					float y = 10 + floor((z - 1) / 11) * (h + 4);
 					game->bricks[index] = brick_create(x, y, get_image(resources, "brick"));
 				}
 				z += 1;
@@ -305,8 +358,9 @@ void load_level_bricks(Game* game, Resources* resources)
 Game* game_create(Resources* resources)
 {
 	Game* game = pd_malloc(sizeof(Game));
+	game->resources = resources;
 	game->paddle = paddle_create(200.f, 230.f, get_image(resources, "paddle"));
-	game->ball = ball_create(100.f, 100.f, get_image(resources, "ball"));
+	serve_ball(game);
 
 	create_walls(game);
 	load_level_bricks(game, resources);
