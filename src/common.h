@@ -14,6 +14,7 @@ static const float PADDLE_DX = 6.f;
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 2.5f;
+static const float BALL_ANGLE = 1.f;
 
 // Bricks
 static const float BRICK_HP = 1.f;
