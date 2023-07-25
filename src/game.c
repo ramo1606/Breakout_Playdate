@@ -74,7 +74,7 @@ void process_input()
 		}
 		break;
 	case GAME:
-		if (pushed & kButtonA)
+		if (breakout.game_state == NULL && pushed & kButtonA)
 		{
 			breakout.mode = GAME_OVER;
 		}
