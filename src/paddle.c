@@ -55,27 +55,14 @@ void paddle_update_sprite(LCDSprite* sprite)
 		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
+			pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+			
 			float x = 0;
 			float y = 0;
-			float actual_x = 0.f;
-			float actual_y = 0.f;
-			int len = 0;
 			pd->sprite->getPosition(sprite, &x, &y);
-			SpriteCollisionInfo* collisions = NULL;
-			collisions = pd->sprite->moveWithCollisions(sprite, x + paddle_data->dx, y, &actual_x, &actual_y, &len);
-
-			if (len != 0)
-			{
-				uint8_t other_tag = pd->sprite->getTag(collisions[0].other);
 			
-				if (other_tag == WALL)
-				{
-					pd->sprite->moveTo(sprite, actual_x, actual_y);
-				}
-			}
-			//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
-			//PDRect collision_rect = pd->sprite->getCollideRect(sprite);
-			//pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), x, (pd->display->getWidth() - (collision_rect.width / 2))), y);
+			PDRect collision_rect = pd->sprite->getCollideRect(sprite);
+			pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), x, (pd->display->getWidth() - (collision_rect.width / 2))), y);
 		}
 	}
 }
