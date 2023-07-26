@@ -16,5 +16,8 @@ void ball_set_stuck(LCDSprite* sprite, bool stuck);
 bool ball_is_stuck(LCDSprite* sprite);
 bool ball_is_dead(LCDSprite* sprite);
 void ball_set_angle(LCDSprite* sprite, float angle);
+bool ball_rammed(LCDSprite* sprite);
+void ball_set_rammed(LCDSprite* sprite, bool rammed);
+
 
 SpriteCollisionResponseType ball_collision_response(LCDSprite* sprite, LCDSprite* other);
