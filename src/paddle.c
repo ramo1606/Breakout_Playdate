@@ -68,7 +68,7 @@ void paddle_update_sprite(LCDSprite* sprite)
 			float actual_y = 0;
 			int len = 0;
 			SpriteCollisionInfo* collisions = NULL;
-			collisions = pd->sprite->moveWithCollisions(sprite, pad_x + paddle_data->dx, y, &actual_x, &actual_y, &len);
+			collisions = pd->sprite->moveWithCollisions(sprite, pad_x + paddle_data->dx, pad_y, &actual_x, &actual_y, &len);
 
 			if (len != 0) 
 			{
@@ -78,8 +78,7 @@ void paddle_update_sprite(LCDSprite* sprite)
 					if (ball_is_stuck(ball)) 
 					{
 						//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
-						PDRect collision_rect = pd->sprite->getCollideRect(sprite);
-						pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (collision_rect.width / 2))), pad_y);
+						pd->sprite->moveTo(sprite, middleOfThree((pad_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width / 2))), pad_y);
 					}
 
 					if (collisions[0].normal.y = -1) 
@@ -91,11 +90,35 @@ void paddle_update_sprite(LCDSprite* sprite)
 					float ball_y = 0;
 					pd->sprite->getPosition(ball, &ball_x, &ball_y);
 					PDRect ball_rect = pd->sprite->getCollideRect(ball);
-					if (ball_y > pad_y - ) 
+					if (ball_y > pad_y - (pad_rect.height / 2) - 3) 
 					{
+						if (sign(ball_get_dx(ball)) == sign(paddle_get_dx(sprite)))
+                                                {
+                                                        ball_set_dx(ball, ball_get_dx(ball) + paddle_get_dx(sprite));
+                                                }
+                                                else
+                                                {
+                                                        ball_set_dx(ball, -ball_get_dx(ball));
+                                                        ball_set_dx(ball, ball_get_dx(ball) + paddle_get_dx(sprite));
+                                                }
+ 
+                                                if (ball_x < pad_x)
+                                                {
+                                                        pd->sprite->moveTo(ball, pad_x - (pad_rect.width / 2), pad_y);
+                                                }
+                                                else
+                                                {
+                                                        pd->sprite->moveTo(ball, pad_x + (pad_rect.width / 2), pad_y);
+                                                }
+
+						if (!ball_rammed(ball))
+                                                {
+                                                        ball_set_rammed(ball, true);
+                                                }
 					}
 				}
 			}
+			pd->sprite->moveTo(sprite, middleOfThree((pad_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width / 2))), pad_y);
 		}
 	}
 }
