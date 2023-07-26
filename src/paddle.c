@@ -1,5 +1,6 @@
 #include "paddle.h"
 #include "common.h"
+#include "ball.h"
 #include "memory.h"
 #include "utils.h"
 
@@ -55,14 +56,46 @@ void paddle_update_sprite(LCDSprite* sprite)
 		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
-			pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+			//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
 			
-			float x = 0;
-			float y = 0;
-			pd->sprite->getPosition(sprite, &x, &y);
-			
-			PDRect collision_rect = pd->sprite->getCollideRect(sprite);
-			pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), x, (pd->display->getWidth() - (collision_rect.width / 2))), y);
+			float pad_x = 0;
+			float pad_y = 0;
+			pd->sprite->getPosition(sprite, &pad_x, &pad_y);
+
+			PDRect pad_rect = pd->sprite->getCollideRect(sprite);
+
+			float actual_x = 0;
+			float actual_y = 0;
+			int len = 0;
+			SpriteCollisionInfo* collisions = NULL;
+			collisions = pd->sprite->moveWithCollisions(sprite, pad_x + paddle_data->dx, y, &actual_x, &actual_y, &len);
+
+			if (len != 0) 
+			{
+				if (pd->sprite->getTag(collisions[0].other) == BALL) 
+				{
+					LCDSprite* ball = collisions[0].other;
+					if (ball_is_stuck(ball)) 
+					{
+						//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+						PDRect collision_rect = pd->sprite->getCollideRect(sprite);
+						pd->sprite->moveTo(sprite, middleOfThree((collision_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (collision_rect.width / 2))), pad_y);
+					}
+
+					if (collisions[0].normal.y = -1) 
+					{
+						return;
+					}
+
+					float ball_x = 0;
+					float ball_y = 0;
+					pd->sprite->getPosition(ball, &ball_x, &ball_y);
+					PDRect ball_rect = pd->sprite->getCollideRect(ball);
+					if (ball_y > pad_y - ) 
+					{
+					}
+				}
+			}
 		}
 	}
 }

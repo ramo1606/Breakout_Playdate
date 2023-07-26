@@ -302,5 +302,4 @@ void ball_set_angle(LCDSprite* sprite, float angle)
                }
        }
 }
-                       {
 
