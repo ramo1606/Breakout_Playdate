@@ -277,29 +277,51 @@ SpriteCollisionResponseType ball_collision_response(LCDSprite* sprite, LCDSprite
 
 void ball_set_angle(LCDSprite* sprite, float angle)
 {
-       if (sprite)
-       {
-               BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
-               if (ball_data)
-               {
-                       ball_data->angle = angle;
-                       
-                       if (angle == 2.f)
-                       {
+	if (sprite)
+        {
+                BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+                if (ball_data)
+                {
+                        ball_data->angle = angle;
+                        if (angle == 2.f)
+                        {
                                 ball_data->dx = .5f * sign(ball_data->dx);
                                 ball_data->dy = 1.3f * sign(ball_data->dy);
-                       }
-                       else if (angle == 0.f)
-                       {
+                        }
+                        else if (angle == 0.f)
+                        {
                                 ball_data->dx = 1.3f * sign(ball_data->dx);
                                 ball_data->dy = .5f * sign(ball_data->dy);
-                       }
-                       else
-		       {
+                        }
+                        else
+                        {
 				ball_data->dx = 1.f * sign(ball_data->dx);
-                                ball_data->dy = 1.f * sign(ball_data->dy);
-                       }
-               }
-       }
+				ball_data->dy = 1.f * sign(ball_data->dy);
+                        }
+                }
+        }
 }
 
+bool ball_rammed(LCDSprite* sprite)
+{
+	if (sprite)
+        {
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+                if (ball_data)
+                {
+			return ball_data->rammed;
+                }
+        }
+}
+
+void ball_set_rammed(LCDSprite* sprite, bool rammed)
+{
+	if (sprite)
+	{
+		BallData* ball_data = (BallData*)get_playdate_API()->sprite->getUserdata(sprite);
+                if (ball_data)
+                {
+			ball_data->rammed = rammed;
+		}
+	}
+}
