@@ -148,7 +148,7 @@ void game_update(Game* game)
 		serve_ball(game);
 	}
 
-	get_playdate_API()->sprite->updateAndDrawSprites();
+	pd->sprite->updateAndDrawSprites();
 
 	if (ball_is_stuck(game->ball))
 	{
@@ -157,7 +157,8 @@ void game_update(Game* game)
 		pd->sprite->getPosition(game->paddle, &pad_x, &pad_y);
 
 		PDRect ball_rect = pd->sprite->getCollideRect(game->ball);
-		get_playdate_API()->sprite->moveTo(game->ball, pad_x, pad_y - ball_rect.height);
+		pd->sprite->moveTo(game->ball, pad_x, pad_y - ball_rect.height);
+		pd->sprite->markDirty(game->ball);
 	}
 }
 
