@@ -137,6 +137,7 @@ void loadLevelBricks(void)
 	{
 		z += 1;
 		currentBrick = currentLevel[index];
+		char* brickName = NULL;
 
         // Check if currentBrick is of any of this types
 		if (currentBrick == 'i' ||
@@ -145,13 +146,15 @@ void loadLevelBricks(void)
 			currentBrick == 's' ||
 			currentBrick == 'p') 
 		{
+			getPlaydateAPI()->system->formatString(&brickName, "brick_%c", currentBrick);
+			getPlaydateAPI()->system->logToConsole(brickName);
 			int w, h;
-			getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage("brick"), &w, &h, NULL, NULL, NULL);
+			getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
 			
             // Calculate the position of the brick
             float x = 80 + ((z - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
 			float y = 10 + (int)floor((z - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
-			game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage("brick"));
+			game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage(brickName), BRICK_translateType(currentBrick));
 			lastBrick = currentBrick;
 		}
 		else if (currentBrick == 'x') 
@@ -173,17 +176,76 @@ void loadLevelBricks(void)
 					lastBrick == 's' ||
 					lastBrick == 'p') 
 				{
+					getPlaydateAPI()->system->formatString(&brickName, "brick_%c", lastBrick);
+					getPlaydateAPI()->system->logToConsole(brickName);
 					int w, h;
-					getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage("brick"), &w, &h, NULL, NULL, NULL);
+					getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
 					float x = 80 + ((z - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
 					float y = 10 + floor((z - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
-					game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage("brick"));
+					game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage(brickName), BRICK_translateType(lastBrick));
 				}
 				z += 1;
 			}
 			z -= 1;
 		}
+		pd_free(brickName);
 	}
+}
+
+bool levelFinished()
+{
+	bool returnValue = false;
+
+	int bricksSize = sizeof(game->bricks)/sizeof(game->bricks[0]);
+	getPlaydateAPI()->system->logToConsole("%i", bricksSize);
+	if (bricksSize == 0)
+	{
+		return true;
+	}
+
+	// checks if there is any invincible brick
+	for (int i = 0; i < bricksSize; i++)
+	{
+		if(/*game->bricks[i].v == true*/BRICK_getType(game->bricks[i]) != INVINCIBLE) return false;
+	}
+
+	return true;
+}
+
+void nextLevel()
+{
+	getPlaydateAPI()->sprite->moveTo(game->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
+	game->currentLevel += 1;
+	
+	if (game->currentLevel > LEVEL_getAmount())
+	{
+
+	}
+	else
+	{
+		loadLevelBricks();
+		serveBall();
+	}
+}
+
+void restartLevel()
+{
+	// Create walls, ball and bricks
+	getPlaydateAPI()->sprite->moveTo(game->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
+    createWalls();
+	loadLevelBricks();
+	serveBall();
+}
+
+void startGame()
+{
+	// Init game data
+    game->currentLevel = 0;
+    game->nextState = GAME;
+
+	game->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS, RESOURCEMANAGER_getImage("paddle"));
+
+	restartLevel();
 }
 
 void GAMESTATE_processInput(void)
@@ -224,16 +286,7 @@ unsigned int GAMESTATE_init(void)
 {
     // Create GameState
     game = pd_malloc(sizeof(GameState));
-    
-    // Init game data
-    game->currentLevel = 0;
-    game->nextState = GAME;
-
-    // Create walls, paddle, ball and bricks
-    createWalls();
-	game->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS, RESOURCEMANAGER_getImage("paddle"));
-	serveBall();
-	loadLevelBricks();
+	startGame();
 
     return 0;
 }
