@@ -1,14 +1,22 @@
-#pragma once
+#ifndef PADDLE_H
+#define PADDLE_H
+
 #include "pd_api.h"
 #include <stdbool.h>
 
+#define PADDLE_INITIAL_X_POS 200
+#define PADDLE_INITIAL_Y_POS 230
+#define PADDLE_DX 6
+
 typedef struct PaddleData PaddleData;
 
-LCDSprite* paddle_create(float x, float y, LCDBitmap* image);
-void paddle_destroy(LCDSprite* sprite);
-void paddle_update_sprite(LCDSprite* sprite);
+LCDSprite* PADDLE_create(float x, float y, LCDBitmap* image);
+void PADDLE_destroy(LCDSprite* sprite);
+void PADDLE_updateSprite(LCDSprite* sprite);
 
-void paddle_set_dx(LCDSprite* sprite, float value);
-float paddle_get_dx(LCDSprite* sprite);
+void PADDLE_setDx(LCDSprite* sprite, float value);
+float PADDLE_getDx(LCDSprite* sprite);
 
-SpriteCollisionResponseType paddle_collision_response(LCDSprite* sprite, LCDSprite* other);
+SpriteCollisionResponseType PADDLE_collisionResponse(LCDSprite* sprite, LCDSprite* other);
+
+#endif
