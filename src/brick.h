@@ -1,15 +1,19 @@
-#pragma once
+#ifndef BRICK_H
+#define BRICK_H
+
 #include "pd_api.h"
 
 typedef struct BrickData BrickData;
 
-LCDSprite* brick_create(float x, float y, LCDBitmap* image);
-void brick_destroy(LCDSprite* sprite);
-void brick_update_sprite(LCDSprite* sprite);
+LCDSprite* BRICK_create(float x, float y, LCDBitmap* image);
+void BRICK_destroy(LCDSprite* sprite);
+void BRICK_updateSprite(LCDSprite* sprite);
 
-void brick_set_dx(LCDSprite* sprite, float value);
-float brick_get_dx(LCDSprite* sprite);
-void brick_set_dy(LCDSprite* sprite, float value);
-float brick_get_dy(LCDSprite* sprite);
+void BRICK_setDx(LCDSprite* sprite, float value);
+float BRICK_getDx(LCDSprite* sprite);
+void BRICK_setDy(LCDSprite* sprite, float value);
+float BRICK_getDy(LCDSprite* sprite);
 
-SpriteCollisionResponseType brick_collision_response(LCDSprite* sprite, LCDSprite* other);
+SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other);
+
+#endif
