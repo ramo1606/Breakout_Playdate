@@ -4,6 +4,8 @@
 
 #include <stdbool.h>
 
+static const float BRICK_HP = 1.f;
+
 struct BrickData
 {
 	float dx;
@@ -11,13 +13,13 @@ struct BrickData
 	float hp;
 };
 
-LCDSprite* brick_create(float x, float y, LCDBitmap* image)
+LCDSprite* BRICK_create(float x, float y, LCDBitmap* image)
 {
-	PlaydateAPI* pd = get_playdate_API();
+	PlaydateAPI* pd = getPlaydateAPI();
 
 	LCDSprite* brick = pd->sprite->newSprite();
 
-	pd->sprite->setUpdateFunction(brick, brick_update_sprite);
+	pd->sprite->setUpdateFunction(brick, BRICK_updateSprite);
 	pd->sprite->setImage(brick, image, kBitmapUnflipped);
 
 	int w, h;
@@ -26,7 +28,7 @@ LCDSprite* brick_create(float x, float y, LCDBitmap* image)
 	// Create collision rect for ball
 	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
 	pd->sprite->setCollideRect(brick, cr);
-	pd->sprite->setCollisionResponseFunction(brick, brick_collision_response);
+	pd->sprite->setCollisionResponseFunction(brick, BRICK_collisionResponse);
 
 	pd->sprite->moveTo(brick, x, y);
 	pd->sprite->setZIndex(brick, 1000);
@@ -35,7 +37,7 @@ LCDSprite* brick_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setTag(brick, BRICK);
 
 	// Initialize paddle data
-	BrickData* brick_data = (BrickData*)pd_malloc(sizeof(BrickData));
+	BrickData* brick_data = pd_malloc(sizeof(BrickData));
 	brick_data->dx = 0;
 	brick_data->dy = 0;
 	brick_data->hp = 1;
@@ -43,18 +45,19 @@ LCDSprite* brick_create(float x, float y, LCDBitmap* image)
 	return brick;
 }
 
-void brick_destroy(LCDSprite* sprite)
+void BRICK_destroy(LCDSprite* sprite)
 {
-	BrickData* brick_data = (BrickData*)get_playdate_API()->sprite->getUserdata(sprite);
+	getPlaydateAPI()->sprite->removeSprite(sprite);
+	BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
 	pd_free(brick_data);
 	pd_free(sprite);
 }
 
-void brick_update_sprite(LCDSprite* sprite)
+void BRICK_updateSprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = get_playdate_API();
+		PlaydateAPI* pd = getPlaydateAPI();
 
 		//float x = 0;
 		//float y = 0;
@@ -84,11 +87,11 @@ void brick_update_sprite(LCDSprite* sprite)
 	}
 }
 
-void brick_set_dx(LCDSprite* sprite, float value)
+void BRICK_setDx(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)get_playdate_API()->sprite->getUserdata(sprite);
+		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
 		if (brick_data)
 		{
 			brick_data->dx = value;
@@ -96,11 +99,11 @@ void brick_set_dx(LCDSprite* sprite, float value)
 	}
 }
 
-float brick_get_dx(LCDSprite* sprite)
+float BRICK_getDx(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)get_playdate_API()->sprite->getUserdata(sprite);
+		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
 		if (brick_data)
 		{
 			return brick_data->dx;
@@ -108,11 +111,11 @@ float brick_get_dx(LCDSprite* sprite)
 	}
 }
 
-void brick_set_dy(LCDSprite* sprite, float value)
+void BRICK_setDy(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)get_playdate_API()->sprite->getUserdata(sprite);
+		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
 		if (brick_data)
 		{
 			brick_data->dx = value;
@@ -120,11 +123,11 @@ void brick_set_dy(LCDSprite* sprite, float value)
 	}
 }
 
-float brick_get_dy(LCDSprite* sprite)
+float BRICK_getDy(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)get_playdate_API()->sprite->getUserdata(sprite);
+		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
 		if (brick_data)
 		{
 			return brick_data->dx;
@@ -132,7 +135,7 @@ float brick_get_dy(LCDSprite* sprite)
 	}
 }
 
-SpriteCollisionResponseType brick_collision_response(LCDSprite* sprite, LCDSprite* other)
+SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
 	return kCollisionTypeBounce;
 }
