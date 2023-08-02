@@ -1,6 +1,5 @@
 #include "brick.h"
 #include "memory.h"
-#include "common.h"
 
 #include <stdbool.h>
 
@@ -11,9 +10,10 @@ struct BrickData
 	float dx;
 	float dy;
 	float hp;
+	EBrickType type;
 };
 
-LCDSprite* BRICK_create(float x, float y, LCDBitmap* image)
+LCDSprite* BRICK_create(float x, float y, LCDBitmap* image, EBrickType type)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
@@ -37,11 +37,12 @@ LCDSprite* BRICK_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setTag(brick, BRICK);
 
 	// Initialize paddle data
-	BrickData* brick_data = pd_malloc(sizeof(BrickData));
-	brick_data->dx = 0;
-	brick_data->dy = 0;
-	brick_data->hp = 1;
-	pd->sprite->setUserdata(brick, (void*)brick_data);
+	BrickData* brickData = pd_malloc(sizeof(BrickData));
+	brickData->dx = 0;
+	brickData->dy = 0;
+	brickData->hp = BRICK_HP;
+	brickData->type = type;
+	pd->sprite->setUserdata(brick, (void*)brickData);
 	return brick;
 }
 
@@ -133,6 +134,35 @@ float BRICK_getDy(LCDSprite* sprite)
 			return brick_data->dx;
 		}
 	}
+}
+
+EBrickType BRICK_getType(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brick_data)
+		{
+			return brick_data->type;
+		}
+	}
+}
+
+EBrickType BRICK_translateType(char type)
+{
+	EBrickType returnType = EMPTY;
+	if (type == 'b')
+		returnType = REGULAR;
+	else if (type == 'i')
+		returnType = INVINCIBLE;
+	else if (type == 'h')
+		returnType = HARDENED;
+	else if (type == 's')
+		returnType = SPLODING;
+	else if (type == 'p')
+		returnType = POWER;
+
+	return returnType;
 }
 
 SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other)
