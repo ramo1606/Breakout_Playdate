@@ -7,7 +7,7 @@
 
 #include "pd_api.h"
 
-#include "game.h"
+#include "engine.h"
 
 #ifdef _WINDLL
 __declspec(dllexport)
@@ -18,9 +18,9 @@ int eventHandler(PlaydateAPI* pd, PDSystemEvent event, uint32_t arg)
 
 	if (event == kEventInit)
 	{
-		create_game(pd);
+		ENGINE_create(pd);
 		pd->display->setRefreshRate(30);
-		pd->system->setUpdateCallback(update, NULL);
+		pd->system->setUpdateCallback(ENGINE_update, NULL);
 	}
 
 	return 0;
