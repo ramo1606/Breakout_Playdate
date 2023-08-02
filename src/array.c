@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "array.h"
+#include "memory.h"
 
 #define ARRAY_RAW_DATA(array) ((int*)(array) - 2)
 #define ARRAY_CAPACITY(array) (ARRAY_RAW_DATA(array)[0])
@@ -9,7 +10,7 @@
 void* array_hold(void* array, int count, int item_size) {
     if (array == NULL) {
         int raw_size = (sizeof(int) * 2) + (item_size * count);
-        int* base = (int*)malloc(raw_size);
+        int* base = (int*)pd_malloc(raw_size);
         base[0] = count;  // capacity
         base[1] = count;  // occupied
         return base + 2;
@@ -22,7 +23,7 @@ void* array_hold(void* array, int count, int item_size) {
         int capacity = needed_size > float_curr ? needed_size : float_curr;
         int occupied = needed_size;
         int raw_size = sizeof(int) * 2 + item_size * capacity;
-        int* base = (int*)realloc(ARRAY_RAW_DATA(array), raw_size);
+        int* base = (int*)pd_realloc(ARRAY_RAW_DATA(array), raw_size);
         base[0] = capacity;
         base[1] = occupied;
         return base + 2;
@@ -35,6 +36,6 @@ int array_length(void* array) {
 
 void array_free(void* array) {
     if (array != NULL) {
-        free(ARRAY_RAW_DATA(array));
+        pd_free(ARRAY_RAW_DATA(array));
     }
 }
