@@ -1,23 +1,11 @@
-#pragma once
+#ifndef COMMON_H
+#define COMMON_H
+
 #include "pd_api.h"
 
 // Game
 #define TEXT_WIDTH 86
 #define TEXT_HEIGHT 16
-
-#define MAX_BALLS 3
-
-// Paddle
-static const float PADDLE_DX = 6.f;
-
-// Ball
-static const float BALL_DX = 1.f;
-static const float BALL_DY = 1.f;
-static const float BALL_SPEED = 2.5f;
-static const float BALL_ANGLE = 1.f;
-
-// Bricks
-static const float BRICK_HP = 1.f;
 
 //Font
 static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";
@@ -35,7 +23,7 @@ typedef enum
 	LEVEL_OVER_WAIT,
 	WINNER,
 	WINNER_WAIT
-}EMode;
+} EMode;
 
 typedef enum
 {
@@ -43,7 +31,7 @@ typedef enum
 	BALL = 1,
 	BRICK = 2,
 	WALL = 3
-} SpriteType;
+} ESpriteType;
 
 typedef enum
 {
@@ -53,7 +41,10 @@ typedef enum
 	HARDENED,
 	SPLODING,
 	POWER
-}BrickType;
+} EBrickType;
 
-void set_playdate_API(PlaydateAPI* playdate);
-PlaydateAPI* get_playdate_API();
+// PlaydateAPI
+void setPlaydateAPI(PlaydateAPI* playdate);
+PlaydateAPI* getPlaydateAPI(void);
+
+#endif
