@@ -1,3 +1,6 @@
-#pragma once
+#ifndef LEVEL_H
+#define LEVEL_H
 
-char* level_get(int level);
+char* LEVEL_get(int level);
+
+#endif
