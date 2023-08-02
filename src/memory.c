@@ -1,7 +1,8 @@
 #include "memory.h"
 
 static PlaydateAPI* pd = NULL;
-void initializeMemoryTools(PlaydateAPI* playdate)
+
+void MEMORY_initializeMemoryTools(PlaydateAPI* playdate)
 {
     pd = playdate;
 }
