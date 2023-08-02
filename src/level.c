@@ -1,6 +1,5 @@
 #include "level.h"
 
-
 #define LEVELS_AMMOUNT 18
 
 static char* levels[LEVELS_AMMOUNT] = {
@@ -50,7 +49,7 @@ static char* levels[LEVELS_AMMOUNT] = {
     ,"//xxxxbpb/xbpbihibpbxbihixxxihibbixxxxxxxibpibxxsxxbipbibxxxxxbibxbibxxxbibxxbibbbbbibxxxbibbbib/xxxbihib/"
 };
 
-char* level_get(int level)
+char* LEVEL_get(int level)
 {
     char* return_level = levels[0];
     if (level < LEVELS_AMMOUNT) 
