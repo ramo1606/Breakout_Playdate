@@ -27,10 +27,11 @@ typedef enum
 
 typedef enum
 {
-	PADDLE = 0,
-	BALL = 1,
-	BRICK = 2,
-	WALL = 3
+	NONE,
+	PADDLE,
+	BALL,
+	BRICK,
+	WALL
 } ESpriteType;
 
 typedef enum
