@@ -1,15 +1,18 @@
 #include "paddle.h"
+
 #include "common.h"
-#include "ball.h"
 #include "memory.h"
+#include "resourcemanager.h"
 #include "utils.h"
+
+#include "ball.h"
 
 struct PaddleData
 {
 	float dx;
 };
 
-LCDSprite* PADDLE_create(float x, float y, LCDBitmap* image)
+LCDSprite* PADDLE_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
@@ -17,10 +20,10 @@ LCDSprite* PADDLE_create(float x, float y, LCDBitmap* image)
 	LCDSprite* paddle = pd->sprite->newSprite();
 
 	pd->sprite->setUpdateFunction(paddle, PADDLE_updateSprite);
-	pd->sprite->setImage(paddle, image, kBitmapUnflipped);
+	pd->sprite->setImage(paddle, RESOURCEMANAGER_getImage("paddle"), kBitmapUnflipped);
 
 	int w, h;
-	pd->graphics->getBitmapData(image, &w, &h, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage("paddle"), &w, &h, NULL, NULL, NULL);
 
 	// Create collision rect for paddle
 	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
@@ -82,7 +85,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 						pd->sprite->moveTo(sprite, mid((pad_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width / 2))), pad_y);
 					}
 
-					if (collisions[0].normal.y = -1) 
+					if (collisions[0].normal.y == -1) 
 					{
 						return;
 					}
@@ -90,7 +93,6 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 					float ball_x = 0;
 					float ball_y = 0;
 					pd->sprite->getPosition(ball, &ball_x, &ball_y);
-					PDRect ball_rect = pd->sprite->getCollideRect(ball);
 					if (ball_y > pad_y - (pad_rect.height / 2) - 3) 
 					{
 						if (sign(BALL_getDx(ball)) == sign(PADDLE_getDx(sprite)))
@@ -151,4 +153,5 @@ float PADDLE_getDx(LCDSprite* sprite)
 			return paddle_data->dx;
 		}
 	}
+	return 0.f;
 }
