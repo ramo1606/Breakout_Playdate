@@ -1,9 +1,12 @@
 #include "ball.h"
-#include "brick.h"
-#include "paddle.h"
-#include "memory.h"
+
 #include "common.h"
 #include "utils.h"
+#include "memory.h"
+#include "resourcemanager.h"
+
+#include "brick.h"
+#include "paddle.h"
 
 #include <stdlib.h>
 
@@ -21,19 +24,21 @@ struct BallData
 	bool stuck;
 	bool dead;
 	bool rammed;
+	int collisionCount;
+	ESpriteType lastCollision;
 };
 
-LCDSprite* BALL_create(float x, float y, LCDBitmap* image)
+LCDSprite* BALL_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
 	LCDSprite* ball = pd->sprite->newSprite();
 
 	pd->sprite->setUpdateFunction(ball, BALL_updateSprite);
-	pd->sprite->setImage(ball, image, kBitmapUnflipped);
+	pd->sprite->setImage(ball, RESOURCEMANAGER_getImage("ball"), kBitmapUnflipped);
 
 	int w, h;
-	pd->graphics->getBitmapData(image, &w, &h, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage("ball"), &w, &h, NULL, NULL, NULL);
 
 	// Create collision rect for ball
 	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
@@ -47,15 +52,17 @@ LCDSprite* BALL_create(float x, float y, LCDBitmap* image)
 	pd->sprite->setTag(ball, BALL);
 
 	// Initialize paddle data
-	BallData* ball_data = pd_malloc(sizeof(BallData));
-	ball_data->dx = BALL_DX;
-	ball_data->dy = BALL_DY;
-	ball_data->speed = BALL_SPEED;
-	ball_data->angle = BALL_ANGLE;
-	ball_data->stuck = false;
-	ball_data->dead = false;
-	ball_data->rammed = false;
-	pd->sprite->setUserdata(ball, (void*)ball_data);
+	BallData* ballData = pd_malloc(sizeof(BallData));
+	ballData->dx = BALL_DX;
+	ballData->dy = BALL_DY;
+	ballData->speed = BALL_SPEED;
+	ballData->angle = BALL_ANGLE;
+	ballData->stuck = false;
+	ballData->dead = false;
+	ballData->rammed = false;
+	ballData->collisionCount = 0;
+	ballData->lastCollision = NONE;
+	pd->sprite->setUserdata(ball, (void*)ballData);
 	return ball;
 }
 
@@ -292,12 +299,12 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 		if (ball_data)
 		{
 			ball_data->angle = angle;
-			if (angle == 2.f)
+			if (areEqual(angle, 2.f))
 			{
 				ball_data->dx = .5f * sign(ball_data->dx);
 				ball_data->dy = 1.3f * sign(ball_data->dy);
 			}
-			else if (angle == 0.f)
+			else if (areEqual(angle, 0.f))
 			{
 				ball_data->dx = 1.3f * sign(ball_data->dx);
 				ball_data->dy = .5f * sign(ball_data->dy);
