@@ -112,7 +112,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 							pd->sprite->moveTo(ball, pad_x + (pad_rect.width / 2), pad_y);
 						}
 
-						if (!ball_rammed(ball))
+						if (!BALL_rammed(ball))
 						{
 							BALL_setRammed(ball, true);
 						}
