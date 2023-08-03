@@ -14,6 +14,11 @@ typedef struct
 
 static StartState* state = NULL;
 
+void STARTSTATE_setNextState(EMode mode)
+{
+    state->nextState = mode;
+}
+
 void STARTSTATE_processInput(void)
 {
     PlaydateAPI* pd = getPlaydateAPI();
@@ -24,7 +29,7 @@ void STARTSTATE_processInput(void)
 
 	if (current & kButtonA && !buttonPressed) 
 	{
-		state->nextState = GAME;
+        TRANSITION_MANAGER_startCloseTransit(GAME);
         buttonPressed = true;
 	}
 }

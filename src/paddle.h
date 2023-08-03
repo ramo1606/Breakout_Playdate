@@ -10,7 +10,7 @@
 
 typedef struct PaddleData PaddleData;
 
-LCDSprite* PADDLE_create(float x, float y, LCDBitmap* image);
+LCDSprite* PADDLE_create(float x, float y);
 void PADDLE_destroy(LCDSprite* sprite);
 void PADDLE_updateSprite(LCDSprite* sprite);
 

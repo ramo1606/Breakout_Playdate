@@ -9,6 +9,8 @@
 
 #include <stdbool.h>
 
+#define INTRO_TIME 60
+
 typedef struct
 {
     int introTime;
@@ -17,7 +19,7 @@ typedef struct
 
 static LogoState* state = NULL;
 
-void LOGOSTATE_setNextMode(EMode mode)
+void LOGOSTATE_setNextState(EMode mode)
 {
     state->nextState = mode;
 }
@@ -40,12 +42,11 @@ unsigned int LOGOSTATE_init(void)
 unsigned int LOGOSTATE_update(float deltaTime)
 {
     state->introTime += 1;
-    if (state->introTime > 30)
+    if (state->introTime > INTRO_TIME)
     {
         TRANSITION_MANAGER_startCloseTransit(START);
         state->introTime = 0;
     }
-    TRANSITION_MANAGER_update(state);
     return 0;
 }
 

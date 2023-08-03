@@ -10,7 +10,7 @@ typedef void (*fnPtrSetMode)(EMode);
 
 typedef struct
 {
-    fnPtrSetMode setNextMode;
+    fnPtrSetMode setNextState;
     fnPtrEMode getNextState;
     fnPtr init;
     fnPtrFl update;

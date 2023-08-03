@@ -6,7 +6,7 @@
 
 typedef struct BallData BallData;
 
-LCDSprite* BALL_create(float x, float y, LCDBitmap* image);
+LCDSprite* BALL_create(float x, float y);
 void BALL_destroy(LCDSprite* sprite);
 void BALL_updateSprite(LCDSprite* sprite);
 

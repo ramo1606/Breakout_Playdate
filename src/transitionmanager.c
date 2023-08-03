@@ -5,7 +5,7 @@
 
 #include <stdbool.h>
 
-#define TRANSITION_TIME_MAX 20
+#define TRANSITION_TIME_MAX 15
 #define TRANSITION_RECT_W_MAX 400
 
 struct TransitionManager
@@ -47,7 +47,7 @@ unsigned int TRANSITION_MANAGER_init(void)
     transitionManager->closeTime = 0;
     transitionManager->changeReady = false;
     transitionManager->rectWidth = 0;
-    transitionManager->rectChangeSpd = 20;
+    transitionManager->rectChangeSpd = 30;
     transitionManager->selectedNextMenu = BLANK;
 }
 
@@ -55,6 +55,7 @@ unsigned int TRANSITION_MANAGER_update(State* state)
 {
     if (transitionManager->changeReady)
     {
+        state->setNextState(transitionManager->selectedNextMenu);
         TRANSITION_MANAGER_startOpenTransit();
     }
 
@@ -82,7 +83,6 @@ unsigned int TRANSITION_MANAGER_update(State* state)
             transitionManager->transitState = REST;
             transitionManager->selectedNextMenu = BLANK;
             transitionManager-> rectWidth = 0;
-            state->setNextMode(transitionManager->selectedNextMenu);
         }
     }
 }

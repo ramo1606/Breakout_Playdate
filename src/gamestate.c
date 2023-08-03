@@ -258,6 +258,11 @@ void GAMESTATE_processInput(void)
 	}
 }
 
+void GAMESTATE_setNextState(EMode mode)
+{
+	game->nextState = mode;
+}
+
 EMode GAMESTATE_getNextState(void)
 {
     return game->nextState;

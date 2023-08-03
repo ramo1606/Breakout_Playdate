@@ -89,7 +89,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 					{
 						return;
 					}
-
+					
 					float ball_x = 0;
 					float ball_y = 0;
 					pd->sprite->getPosition(ball, &ball_x, &ball_y);
@@ -104,7 +104,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 							BALL_setDx(ball, -BALL_getDx(ball));
 							BALL_setDx(ball, BALL_getDx(ball) + PADDLE_getDx(sprite));
 						}
-
+					
 						if (ball_x < pad_x)
 						{
 							pd->sprite->moveTo(ball, pad_x - (pad_rect.width / 2), pad_y);
@@ -113,7 +113,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 						{
 							pd->sprite->moveTo(ball, pad_x + (pad_rect.width / 2), pad_y);
 						}
-
+					
 						if (!BALL_rammed(ball))
 						{
 							BALL_setRammed(ball, true);

@@ -6,7 +6,7 @@
 
 typedef struct BrickData BrickData;
 
-LCDSprite* BRICK_create(float x, float y, LCDBitmap* image, EBrickType type);
+LCDSprite* BRICK_create(int gridPos, char type);
 void BRICK_destroy(LCDSprite* sprite);
 void BRICK_updateSprite(LCDSprite* sprite);
 

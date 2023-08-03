@@ -40,6 +40,7 @@ void ENGINE_create(PlaydateAPI* p)
 	
 	// Create initial state
 	State* logoState = pd_malloc(sizeof(State));
+	logoState->setNextState = LOGOSTATE_setNextState;
 	logoState->getNextState = LOGOSTATE_getNextState;
 	logoState->init = LOGOSTATE_init;
 	logoState->update = LOGOSTATE_update;
@@ -66,6 +67,7 @@ void updateState(void)
 			pd_free(currentState);
 
 			currentState = pd_malloc(sizeof(State));
+			currentState->setNextState = STARTSTATE_setNextState;
 			currentState->getNextState = STARTSTATE_getNextState;
 			currentState->init = STARTSTATE_init;
 			currentState->update = STARTSTATE_update;
@@ -81,6 +83,7 @@ void updateState(void)
 			engine.mode = currentState->getNextState();
 
 			currentState = pd_malloc(sizeof(State));
+			currentState->setNextState = GAMESTATE_setNextState;
 			currentState->getNextState = GAMESTATE_getNextState;
 			currentState->init = GAMESTATE_init;
 			currentState->update = GAMESTATE_update;
@@ -118,7 +121,9 @@ int ENGINE_update(void)
 	getPlaydateAPI()->system->resetElapsedTime();
 
 	STATEMANAGER_update(engine.stateManager, deltaTime);
+	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
 	STATEMANAGER_draw(engine.stateManager, deltaTime);
+	TRANSITION_MANAGER_draw();
 
 	return 1;
 }

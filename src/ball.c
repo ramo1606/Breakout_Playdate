@@ -109,89 +109,92 @@ void BALL_updateSprite(LCDSprite* sprite)
 			SpriteCollisionInfo* collisions = NULL;
 			collisions = pd->sprite->moveWithCollisions(sprite, nextx, nexty, &actual_x, &actual_y, &len);
 
-			if(len == 1)
+			if(len > 0)
 			{
-				pd->sprite->moveTo(sprite, actual_x, actual_y);
-				uint8_t other_tag = pd->sprite->getTag(collisions[0].other);
-
-				if (other_tag == WALL) 
+				for(int i = 0; i < len; i++)
 				{
-					if (collisions[0].normal.y == -1) 
-					{
-						ball_data->dead = true;
-					}
-					else 
-					{
-						BALL_reflect(ball_data, collisions[0].normal);
-					}
-				}
+					pd->sprite->moveTo(sprite, actual_x, actual_y);
+					uint8_t other_tag = pd->sprite->getTag(collisions[i].other);
 
-				if (other_tag == PADDLE) 
-				{
-					float pad_x = 0;
-					float pad_y = 0;
-					pd->sprite->getPosition(collisions[0].other, &pad_x, &pad_y);
-
-					bool bend = false;
-					bool angf = false;
-					if (collisions[0].normal.x != 0)
+					if (other_tag == WALL)
 					{
-						if (actual_y + ball_rect.width > pad_y + 3)
+						if (collisions[i].normal.y == -1)
 						{
-							ball_data->rammed = true;
+							ball_data->dead = true;
 						}
 						else
 						{
-							bend = true;
-							angf = false;
-							collisions[0].normal.y = -1;
-							pd->sprite->moveTo(sprite, nextx, pad_y - ball_rect.height);
+							BALL_reflect(ball_data, collisions[i].normal);
 						}
 					}
 
-					BALL_reflect(ball_data, collisions[0].normal);
-
-					if (collisions[0].normal.y == -1)
+					if (other_tag == PADDLE)
 					{
-						if (!bend && abs(PADDLE_getDx(collisions[0].other)) > 1)
+						float pad_x = 0;
+						float pad_y = 0;
+						pd->sprite->getPosition(collisions[i].other, &pad_x, &pad_y);
+					
+						bool bend = false;
+						bool angf = false;
+						if (collisions[i].normal.x != 0)
 						{
-							bend = true;
-							if (sign(PADDLE_getDx(collisions[0].other)) == sign(BALL_getDx(sprite)))
+							if (actual_y + ball_rect.width > pad_y + 3)
 							{
-								angf = true;
+								ball_data->rammed = true;
 							}
 							else
 							{
+								bend = true;
 								angf = false;
+								collisions[i].normal.y = -1;
+								pd->sprite->moveTo(sprite, nextx, pad_y - ball_rect.height);
 							}
 						}
-						
-						if (bend)
-                        {
-							if (angf)
+					
+						BALL_reflect(ball_data, collisions[i].normal);
+					
+						if (collisions[i].normal.y == -1)
+						{
+							if (!bend && abs(PADDLE_getDx(collisions[i].other)) > 1)
 							{
-								BALL_setAngle(sprite, mid(0, ball_data->angle - 1, 2));
-							}
-							else
-							{
-								if (ball_data->angle == 2)
+								bend = true;
+								if (sign(PADDLE_getDx(collisions[i].other)) == sign(BALL_getDx(sprite)))
 								{
-									ball_data->dx = -ball_data->dx;
+									angf = true;
 								}
 								else
 								{
-									BALL_setAngle(sprite, mid(0, ball_data->angle + 1, 2));
+									angf = false;
+								}
+							}
+					
+							if (bend)
+							{
+								if (angf)
+								{
+									BALL_setAngle(sprite, mid(0, ball_data->angle - 1, 2));
+								}
+								else
+								{
+									if (ball_data->angle == 2)
+									{
+										ball_data->dx = -ball_data->dx;
+									}
+									else
+									{
+										BALL_setAngle(sprite, mid(0, ball_data->angle + 1, 2));
+									}
 								}
 							}
 						}
-                    }
-				}
+					}
 
-				if (other_tag == BRICK) 
-				{
-					pd->sprite->removeSprite(collisions[0].other);
-					BRICK_destroy(collisions[0].other);
-					BALL_reflect(ball_data, collisions[0].normal);
+					if (other_tag == BRICK)
+					{
+						pd->sprite->removeSprite(collisions[i].other);
+						BRICK_destroy(collisions[i].other);
+						BALL_reflect(ball_data, collisions[i].normal);
+					}
 				}
 			}
 		}

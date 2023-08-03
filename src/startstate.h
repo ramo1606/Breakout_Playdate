@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+void STARTSTATE_setNextState(EMode mode);
 EMode STARTSTATE_getNextState(void);
 unsigned int STARTSTATE_init(void);
 unsigned int STARTSTATE_update(float deltaTime);
