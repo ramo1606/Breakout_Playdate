@@ -30,12 +30,12 @@ float mid(float a, float b, float c)
         return a;
 }
 
-void transitionUpdate()
+void transitionUpdate(void)
 {
     time += 0.15f;
 }
 
-void transitionDraw()
+void transitionDraw(void)
 {
     // TODO: look at how to stop this after one pass
     // column loop
@@ -56,7 +56,7 @@ void transitionDraw()
             int y = j * 40 + osc1 * 10;
 
             // the circles radius are influenced by the other sweepy number
-            getPlaydateAPI()->graphics->fillEllipse(x - (osc2 * 40), y - (osc2 * 40), osc2 * 40 * 2, osc2 * 40 * 2, 0, 0, kColorBlack);
+            getPlaydateAPI()->graphics->fillRect(x - (osc2 * 40), y - (osc2 * 40), osc2 * 40 * 2, osc2 * 40 * 2, kColorBlack);
         }
     }
 }
