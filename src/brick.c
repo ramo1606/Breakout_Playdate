@@ -1,48 +1,77 @@
 #include "brick.h"
 #include "memory.h"
+#include "resourcemanager.h"
 
 #include <stdbool.h>
+#include <time.h>
+
+#define BRICK_WIDTH_SPACE_OFFSET 6
+#define BRICK_HEIGHT_SPACE_OFFSET 4
 
 static const float BRICK_HP = 1.f;
 
 struct BrickData
 {
+	bool v;
 	float dx;
 	float dy;
 	float hp;
 	EBrickType type;
+	int ox;
+	int oy;
+	int fsh;
 };
 
-LCDSprite* BRICK_create(float x, float y, LCDBitmap* image, EBrickType type)
+LCDSprite* BRICK_create(int gridPos, char type)
 {
+	/* Intializes random number generator */
+	time_t t;
+   	srand((unsigned) time(&t));
+
 	PlaydateAPI* pd = getPlaydateAPI();
 
+	// Create new Sprite
 	LCDSprite* brick = pd->sprite->newSprite();
 
+	// Set update function
 	pd->sprite->setUpdateFunction(brick, BRICK_updateSprite);
-	pd->sprite->setImage(brick, image, kBitmapUnflipped);
 
+	// Set bitmap
+	char* brickName = NULL; // temporary string
+	getPlaydateAPI()->system->formatString(&brickName, "brick_%c", type);
+	pd->sprite->setImage(brick, RESOURCEMANAGER_getImage(brickName), kBitmapUnflipped);
+	
+	// Get width and height of the bitmap
 	int w, h;
-	pd->graphics->getBitmapData(image, &w, &h, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
 
 	// Create collision rect for ball
 	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
 	pd->sprite->setCollideRect(brick, cr);
 	pd->sprite->setCollisionResponseFunction(brick, BRICK_collisionResponse);
 
+	// Calculate position
+	float x = 80 + ((gridPos - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
+	float y = 10 + (int)floor((gridPos - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
 	pd->sprite->moveTo(brick, x, y);
 	pd->sprite->setZIndex(brick, 1000);
-	pd->sprite->addSprite(brick);
-
 	pd->sprite->setTag(brick, BRICK);
+	pd->sprite->addSprite(brick);
 
 	// Initialize paddle data
 	BrickData* brickData = pd_malloc(sizeof(BrickData));
-	brickData->dx = 0;
-	brickData->dy = 0;
-	brickData->hp = BRICK_HP;
-	brickData->type = type;
+	brickData->v = true;
+	brickData->dx = 0.f;
+	brickData->dy = (float)rand()/(float)(RAND_MAX/64);
+	brickData->type = BRICK_translateType(type);
+	brickData->hp = (brickData->type == HARDENED) ? BRICK_HP * 2 : BRICK_HP;
+	brickData->ox = 0;
+	brickData->oy = 128+rand()/(RAND_MAX/128);
+	brickData->fsh = 0;
 	pd->sprite->setUserdata(brick, (void*)brickData);
+
+	// Remove temporary string
+	pd_free(brickName);
 	return brick;
 }
 
