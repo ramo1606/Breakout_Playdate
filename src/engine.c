@@ -3,6 +3,7 @@
 #include "resourcemanager.h"
 #include "memory.h"
 
+#include "transitionmanager.h"
 #include "statemanager.h"
 #include "logostate.h"
 #include "startstate.h"
@@ -26,6 +27,7 @@ void ENGINE_create(PlaydateAPI* p)
 	setPlaydateAPI(p);							// Set Playdate API to access globally
 	MEMORY_initializeMemoryTools(p);			// Initialize memory tools
 	RESOURCEMANAGER_load();						// Load resources
+	TRANSITION_MANAGER_init();
 
 	//Fonts
 	const char* err;
