@@ -14,6 +14,7 @@ static LCDFont* font = NULL;
 // Enums
 typedef enum
 {
+	BLANK,
 	LOGO,
 	START,
 	GAME,
@@ -43,6 +44,13 @@ typedef enum
 	SPLODING,
 	POWER
 } EBrickType;
+
+typedef enum
+{
+	REST,
+	CLOSE,
+	OPEN
+} ETransitionState;
 
 // PlaydateAPI
 void setPlaydateAPI(PlaydateAPI* playdate);
