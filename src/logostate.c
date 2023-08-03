@@ -2,6 +2,7 @@
 
 #include "pd_api.h"
 
+#include "transitionmanager.h"
 #include "resourcemanager.h"
 #include "memory.h"
 #include "utils.h"
@@ -15,6 +16,11 @@ typedef struct
 } LogoState;
 
 static LogoState* state = NULL;
+
+void LOGOSTATE_setNextMode(EMode mode)
+{
+    state->nextState = mode;
+}
 
 EMode LOGOSTATE_getNextState(void)
 {
@@ -33,7 +39,13 @@ unsigned int LOGOSTATE_init(void)
 
 unsigned int LOGOSTATE_update(float deltaTime)
 {
-    //transitionUpdate();
+    state->introTime += 1;
+    if (state->introTime > 30)
+    {
+        TRANSITION_MANAGER_startCloseTransit(START);
+        state->introTime = 0;
+    }
+    TRANSITION_MANAGER_update(state);
     return 0;
 }
 
@@ -44,6 +56,7 @@ unsigned int LOGOSTATE_draw(float deltaTime)
 	int y = (240 - TEXT_HEIGHT) / 2;
 	getPlaydateAPI()->graphics->setFont(font);
 	getPlaydateAPI()->graphics->drawText("LOGO!", strlen("LOGO!"), kASCIIEncoding, x, y);
+    TRANSITION_MANAGER_draw();
 
     return 0;
 }
