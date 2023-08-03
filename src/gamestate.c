@@ -2,7 +2,6 @@
 
 #include "pd_api.h"
 
-#include "resourcemanager.h"
 #include "memory.h"
 
 #include "level.h"
@@ -13,9 +12,6 @@
 #include <stdbool.h>
 
 #define MAX_BALLS 3
-
-#define BRICK_WIDTH_SPACE_OFFSET 6
-#define BRICK_HEIGHT_SPACE_OFFSET 4
 
 typedef struct 
 {
@@ -33,8 +29,6 @@ typedef struct
 	LCDSprite** bricks;
 
 	Walls walls;
-
-	//VFX
 
 	//Levels
     int currentLevel;
@@ -91,14 +85,17 @@ void serveBall(void)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
+	// Get paddle position 
 	float paddle_x = 0;
 	float paddle_y = 0;
 	pd->sprite->getPosition(game->paddle, &paddle_x, &paddle_y);
 	PDRect paddle_rect = pd->sprite->getCollideRect(game->paddle);
     
     // Create new ball at paddle top center position
-    game->ball = BALL_create(paddle_x, paddle_y - (paddle_rect.width / 2), RESOURCEMANAGER_getImage("ball"));
-
+    game->ball = BALL_create(paddle_x, paddle_y - (paddle_rect.width / 2));
+	BALL_setDx(game->ball, 1.f);
+	BALL_setDy(game->ball, -1.f);
+	BALL_setAngle(game->ball, 1.f);
 	BALL_setStuck(game->ball, true);
 }
 
@@ -130,14 +127,13 @@ void loadLevelBricks(void)
 
 	char currentBrick = '\0';
 	char lastBrick = '\0';
-	int z = -1;
+	int gridPos = -1;
 
     // Iterate through all the chars in the current level char*
 	for (int index = 0; index < strlen(currentLevel); ++index)
 	{
-		z += 1;
+		gridPos += 1;
 		currentBrick = currentLevel[index];
-		char* brickName = NULL;
 
         // Check if currentBrick is of any of this types
 		if (currentBrick == 'i' ||
@@ -146,15 +142,7 @@ void loadLevelBricks(void)
 			currentBrick == 's' ||
 			currentBrick == 'p') 
 		{
-			getPlaydateAPI()->system->formatString(&brickName, "brick_%c", currentBrick);
-			getPlaydateAPI()->system->logToConsole(brickName);
-			int w, h;
-			getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
-			
-            // Calculate the position of the brick
-            float x = 80 + ((z - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
-			float y = 10 + (int)floor((z - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
-			game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage(brickName), BRICK_translateType(currentBrick));
+			game->bricks[index] = BRICK_create(gridPos, currentBrick);
 			lastBrick = currentBrick;
 		}
 		else if (currentBrick == 'x') 
@@ -163,7 +151,7 @@ void loadLevelBricks(void)
 		}
 		else if (currentBrick == '/') 
 		{
-			z = (int)floor(((z - 1) / 11) + 1) * 11;
+			gridPos = (int)floor(((gridPos - 1) / 11) + 1) * 11;
 		}
 		else if (currentBrick >= '0' && currentBrick <= '9')
 		{
@@ -176,19 +164,12 @@ void loadLevelBricks(void)
 					lastBrick == 's' ||
 					lastBrick == 'p') 
 				{
-					getPlaydateAPI()->system->formatString(&brickName, "brick_%c", lastBrick);
-					getPlaydateAPI()->system->logToConsole(brickName);
-					int w, h;
-					getPlaydateAPI()->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
-					float x = 80 + ((z - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
-					float y = 10 + floor((z - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
-					game->bricks[index] = BRICK_create(x, y, RESOURCEMANAGER_getImage(brickName), BRICK_translateType(lastBrick));
+					game->bricks[index] = BRICK_create(gridPos, lastBrick);
 				}
-				z += 1;
+				gridPos += 1;
 			}
-			z -= 1;
+			gridPos -= 1;
 		}
-		pd_free(brickName);
 	}
 }
 
@@ -243,7 +224,7 @@ void startGame()
     game->currentLevel = 0;
     game->nextState = GAME;
 
-	game->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS, RESOURCEMANAGER_getImage("paddle"));
+	game->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
 
 	restartLevel();
 }
