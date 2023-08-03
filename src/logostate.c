@@ -10,25 +10,11 @@
 
 typedef struct
 {
+    int introTime;
     EMode nextState;
 } LogoState;
 
 static LogoState* state = NULL;
-
-void LOGOSTATE_processInput(void)
-{
-    PlaydateAPI* pd = getPlaydateAPI();
-
-	PDButtons current;
-	pd->system->getButtonState(NULL, NULL, &current);
-	bool buttonPressed = false;
-
-	if (current & kButtonA && !buttonPressed) 
-	{
-		state->nextState = START;
-        buttonPressed = true;
-	}
-}
 
 EMode LOGOSTATE_getNextState(void)
 {
@@ -39,6 +25,7 @@ unsigned int LOGOSTATE_init(void)
 {
     // Create logoState
     state = pd_malloc(sizeof(LogoState));
+    state->introTime = 0;
     state->nextState = LOGO;
     
     return 0;
@@ -46,14 +33,13 @@ unsigned int LOGOSTATE_init(void)
 
 unsigned int LOGOSTATE_update(float deltaTime)
 {
-    LOGOSTATE_processInput();
-    transitionUpdate();
+    //transitionUpdate();
     return 0;
 }
 
 unsigned int LOGOSTATE_draw(float deltaTime)
 {
-    transitionDraw();
+    //transitionDraw();
     int x = (400 - TEXT_WIDTH) / 2;
 	int y = (240 - TEXT_HEIGHT) / 2;
 	getPlaydateAPI()->graphics->setFont(font);
