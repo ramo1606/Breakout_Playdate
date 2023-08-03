@@ -58,3 +58,8 @@ char* LEVEL_get(int level)
     }
     return return_level;
 }
+
+int LEVEL_getAmount()
+{
+    return LEVELS_AMMOUNT;
+}
