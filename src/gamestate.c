@@ -34,9 +34,15 @@ typedef struct
     int currentLevel;
 
     EMode nextState;
+
+	bool sticky;
+
+	//Particles: move to particle files
+	float lastHitDX;
+	float lastHitDY;
 } GameState;
 
-static GameState* game = NULL;
+static GameState* state = NULL;
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -56,29 +62,29 @@ void createWalls(void)
 	
 	// Create Walls 
 	PlaydateAPI* pd = getPlaydateAPI();
-	game->walls.Top = pd->sprite->newSprite();
-	game->walls.Bottom = pd->sprite->newSprite();
-	game->walls.Right = pd->sprite->newSprite();
-	game->walls.Left = pd->sprite->newSprite();
+	state->walls.Top = pd->sprite->newSprite();
+	state->walls.Bottom = pd->sprite->newSprite();
+	state->walls.Right = pd->sprite->newSprite();
+	state->walls.Left = pd->sprite->newSprite();
 
     int screen_width = pd->display->getWidth();
 	int screen_height = pd->display->getHeight();
 
 	// Top Wall
 	PDRect top_collision_rect = PDRectMake(0, 0, (float)screen_width, 1.f);
-    setupWall(game->walls.Top, top_collision_rect, 0.f, -1.f);
+    setupWall(state->walls.Top, top_collision_rect, 0.f, -1.f);
 
 	// `Bottom Wall
     PDRect bottom_collision_rect = PDRectMake(0.f, 0.f, (float)screen_width, 1.f);
-    setupWall(game->walls.Bottom, bottom_collision_rect, 0.f, (float)screen_height);
+    setupWall(state->walls.Bottom, bottom_collision_rect, 0.f, (float)screen_height);
 
 	// Right Wall
     PDRect right_collision_rect = PDRectMake(0.f, 0.f, 1.f, (float)screen_height);
-    setupWall(game->walls.Right, right_collision_rect, (float)screen_width, 0.f);
+    setupWall(state->walls.Right, right_collision_rect, (float)screen_width, 0.f);
 
 	//Left Wall
     PDRect left_collision_rect = PDRectMake(0.f, 0.f, 1.f, (float)screen_height);
-    setupWall(game->walls.Left, left_collision_rect, -1.f, 0.f);
+    setupWall(state->walls.Left, left_collision_rect, -1.f, 0.f);
 }
 
 void serveBall(void)
@@ -88,35 +94,37 @@ void serveBall(void)
 	// Get paddle position 
 	float paddle_x = 0;
 	float paddle_y = 0;
-	pd->sprite->getPosition(game->paddle, &paddle_x, &paddle_y);
-	PDRect paddle_rect = pd->sprite->getCollideRect(game->paddle);
+	pd->sprite->getPosition(state->paddle, &paddle_x, &paddle_y);
+	PDRect paddle_rect = pd->sprite->getCollideRect(state->paddle);
     
     // Create new ball at paddle top center position
-    game->ball = BALL_create(paddle_x, paddle_y - (paddle_rect.width / 2));
-	BALL_setDx(game->ball, 1.f);
-	BALL_setDy(game->ball, -1.f);
-	BALL_setAngle(game->ball, 1.f);
-	BALL_setStuck(game->ball, true);
+    state->ball = BALL_create(paddle_x, paddle_y - (paddle_rect.width * 0.5));
+	BALL_setDx(state->ball, 1.f);
+	BALL_setDy(state->ball, -1.f);
+	BALL_setAngle(state->ball, 1.f);
+	BALL_setStuck(state->ball, true);
+
+
 }
 
 void releaseStuck(void) 
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
-	if (BALL_isStuck(game->ball))
+	if (BALL_isStuck(state->ball))
 	{
 		float x = 0;
 		float y = 0;
-		pd->sprite->getPosition(game->ball, &x, &y);
-		pd->sprite->moveTo(game->ball, x, y);
-		BALL_setStuck(game->ball, false);
+		pd->sprite->getPosition(state->ball, &x, &y);
+		pd->sprite->moveTo(state->ball, x, y);
+		BALL_setStuck(state->ball, false);
 	}
 }
 
 void loadLevelBricks(void)
 {
-	char* currentLevel = LEVEL_get(game->currentLevel);
-	game->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(currentLevel));
+	char* currentLevel = LEVEL_get(state->currentLevel);
+	state->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(currentLevel));
 
 	// b = normal brick
 	// x = empty space
@@ -142,7 +150,7 @@ void loadLevelBricks(void)
 			currentBrick == 's' ||
 			currentBrick == 'p') 
 		{
-			game->bricks[index] = BRICK_create(gridPos, currentBrick);
+			state->bricks[index] = BRICK_create(gridPos, currentBrick);
 			lastBrick = currentBrick;
 		}
 		else if (currentBrick == 'x') 
@@ -164,7 +172,7 @@ void loadLevelBricks(void)
 					lastBrick == 's' ||
 					lastBrick == 'p') 
 				{
-					game->bricks[index] = BRICK_create(gridPos, lastBrick);
+					state->bricks[index] = BRICK_create(gridPos, lastBrick);
 				}
 				gridPos += 1;
 			}
@@ -177,7 +185,7 @@ bool levelFinished()
 {
 	bool returnValue = false;
 
-	int bricksSize = sizeof(game->bricks)/sizeof(game->bricks[0]);
+	int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
 	getPlaydateAPI()->system->logToConsole("%i", bricksSize);
 	if (bricksSize == 0)
 	{
@@ -187,7 +195,7 @@ bool levelFinished()
 	// checks if there is any invincible brick
 	for (int i = 0; i < bricksSize; i++)
 	{
-		if(/*game->bricks[i].v == true*/BRICK_getType(game->bricks[i]) != INVINCIBLE) return false;
+		if(/*state->bricks[i].v == true*/BRICK_getType(state->bricks[i]) != INVINCIBLE) return false;
 	}
 
 	return true;
@@ -195,10 +203,10 @@ bool levelFinished()
 
 void nextLevel()
 {
-	getPlaydateAPI()->sprite->moveTo(game->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
-	game->currentLevel += 1;
+	getPlaydateAPI()->sprite->moveTo(state->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
+	state->currentLevel += 1;
 	
-	if (game->currentLevel > LEVEL_getAmount())
+	if (state->currentLevel > LEVEL_getAmount())
 	{
 
 	}
@@ -212,7 +220,7 @@ void nextLevel()
 void restartLevel()
 {
 	// Create walls, ball and bricks
-	getPlaydateAPI()->sprite->moveTo(game->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
+	getPlaydateAPI()->sprite->moveTo(state->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
     createWalls();
 	loadLevelBricks();
 	serveBall();
@@ -221,10 +229,10 @@ void restartLevel()
 void startGame()
 {
 	// Init game data
-    game->currentLevel = 0;
-    game->nextState = GAME;
+    state->currentLevel = 0;
+    state->nextState = GAME;
 
-	game->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
+	state->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
 
 	restartLevel();
 }
@@ -239,12 +247,12 @@ void GAMESTATE_processInput(void)
 
 	if (current & kButtonLeft)
 	{
-		PADDLE_setDx(game->paddle, -PADDLE_DX);
+		PADDLE_setDx(state->paddle, -PADDLE_DX);
 		buttonPressed = true;
 	}
 	if (current & kButtonRight)
 	{
-		PADDLE_setDx(game->paddle, PADDLE_DX);
+		PADDLE_setDx(state->paddle, PADDLE_DX);
 		buttonPressed = true;
 	}
 	if (current & kButtonA) 
@@ -254,24 +262,24 @@ void GAMESTATE_processInput(void)
 	
 	if (!buttonPressed)
 	{
-		PADDLE_setDx(game->paddle, PADDLE_getDx(game->paddle) / 1.3f);
+		PADDLE_setDx(state->paddle, PADDLE_getDx(state->paddle) / 1.3f);
 	}
 }
 
 void GAMESTATE_setNextState(EMode mode)
 {
-	game->nextState = mode;
+	state->nextState = mode;
 }
 
 EMode GAMESTATE_getNextState(void)
 {
-    return game->nextState;
+    return state->nextState;
 }
 
 unsigned int GAMESTATE_init(void)
 {
     // Create GameState
-    game = pd_malloc(sizeof(GameState));
+    state = pd_malloc(sizeof(GameState));
 	startGame();
 
     return 0;
@@ -284,22 +292,22 @@ unsigned int GAMESTATE_update(float deltaTime)
     GAMESTATE_processInput();
 
     // Check if ball still alive
-	if (BALL_isDead(game->ball))
+	if (BALL_isDead(state->ball))
 	{
-		BALL_destroy(game->ball);
+		BALL_destroy(state->ball);
 		serveBall();
 	}
 
     // Check if ball is stuck
-    if (BALL_isStuck(game->ball))
+    if (BALL_isStuck(state->ball))
 	{
 		float pad_x = 0.f;
 		float pad_y = 0.f;
-		pd->sprite->getPosition(game->paddle, &pad_x, &pad_y);
+		pd->sprite->getPosition(state->paddle, &pad_x, &pad_y);
 
-		PDRect ball_rect = pd->sprite->getCollideRect(game->ball);
-		pd->sprite->moveTo(game->ball, pad_x, pad_y - ball_rect.height);
-		//pd->sprite->markDirty(game->ball);
+		PDRect ball_rect = pd->sprite->getCollideRect(state->ball);
+		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
+		//pd->sprite->markDirty(state->ball);
 	}
 
 	pd->sprite->updateAndDrawSprites();
@@ -315,16 +323,27 @@ unsigned int GAMESTATE_draw(float deltaTime)
 unsigned int GAMESTATE_destroy(void)
 {
     PlaydateAPI* pd = getPlaydateAPI();
-	pd->sprite->freeSprite(game->walls.Top);
-	pd->sprite->freeSprite(game->walls.Bottom);
-	pd->sprite->freeSprite(game->walls.Right);
-	pd->sprite->freeSprite(game->walls.Left);
+	pd->sprite->freeSprite(state->walls.Top);
+	pd->sprite->freeSprite(state->walls.Bottom);
+	pd->sprite->freeSprite(state->walls.Right);
+	pd->sprite->freeSprite(state->walls.Left);
 
-	PADDLE_destroy(game->paddle);
-	BALL_destroy(game->ball);
+	PADDLE_destroy(state->paddle);
+	BALL_destroy(state->ball);
 
-    pd_free(game);
-    game = NULL;
+    pd_free(state);
+    state = NULL;
 
     return 0;
+}
+
+
+LCDSprite* GAMESTATE_getPaddle(void)
+{
+	return state->paddle;
+}
+
+LCDSprite* GAMESTATE_getBall(void)
+{
+	return state->ball;
 }

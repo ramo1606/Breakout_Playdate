@@ -5,11 +5,14 @@
 #include "memory.h"
 #include "resourcemanager.h"
 
+#include "gamestate.h"
 #include "brick.h"
 #include "paddle.h"
 
 #include <stdlib.h>
+#include <time.h>
 
+static const int MAX_COLLISIONS_COUNT = 600;
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 2.5f;
@@ -25,8 +28,30 @@ struct BallData
 	bool dead;
 	bool rammed;
 	int collisionCount;
+	int infiniteCounter;
 	ESpriteType lastCollision;
 };
+
+void checkInfinite(LCDSprite* ball) 
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	/* Intializes random number generator */
+	srand(pd->system->getCurrentTimeMilliseconds());
+
+	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(ball);
+	if (ballData->infiniteCounter > MAX_COLLISIONS_COUNT)
+	{
+		ballData->infiniteCounter = 0;
+		float newAngle = 0.f;
+		do 
+		{
+			newAngle = floorf(rand(3));
+		} while (areEqual(newAngle, ballData->angle));
+		
+		BALL_setAngle(ball, newAngle);
+	}
+}
 
 LCDSprite* BALL_create(float x, float y)
 {
@@ -40,8 +65,12 @@ LCDSprite* BALL_create(float x, float y)
 	int w, h;
 	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage("ball"), &w, &h, NULL, NULL, NULL);
 
-	// Create collision rect for ball
-	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
+	// Create bounds rect for ball
+	PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
+	pd->sprite->setBounds(ball, bounds);
+
+	// Create collision rect for ball and set collisions to bounce
+	PDRect cr = PDRectMake(1.f, 1.f, (float)(w - 2), (float)(h - 2));
 	pd->sprite->setCollideRect(ball, cr);
 	pd->sprite->setCollisionResponseFunction(ball, BALL_collisionResponse);
 
@@ -61,6 +90,7 @@ LCDSprite* BALL_create(float x, float y)
 	ballData->dead = false;
 	ballData->rammed = false;
 	ballData->collisionCount = 0;
+	ballData->infiniteCounter = 0;
 	ballData->lastCollision = NONE;
 	pd->sprite->setUserdata(ball, (void*)ballData);
 	return ball;
@@ -69,20 +99,20 @@ LCDSprite* BALL_create(float x, float y)
 void BALL_destroy(LCDSprite* sprite)
 {
 	getPlaydateAPI()->sprite->removeSprite(sprite);
-	BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-	pd_free(ball_data);
+	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd_free(ballData);
 	pd_free(sprite);
 }
 
-void BALL_reflect(BallData* ball_data, CollisionVector normal)
+void BALL_reflect(BallData* ballData, CollisionVector normal)
 {
 	if (normal.x != 0)
 	{
-		ball_data->dx = -ball_data->dx;
+		ballData->dx = -ballData->dx;
 	}
 	if (normal.y != 0)
 	{
-		ball_data->dy = -ball_data->dy;
+		ballData->dy = -ballData->dy;
 	}
 }
 
@@ -91,111 +121,60 @@ void BALL_updateSprite(LCDSprite* sprite)
 	if (sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
-		BallData* ball_data = (BallData*)pd->sprite->getUserdata(sprite);
-		if (ball_data && !BALL_isDead(sprite) && !BALL_isStuck(sprite))
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+
+		if(BALL_isStuck(sprite))
+		{
+			// Get all the data that we need to calculate the ball position if is stuck, which is on the top of the paddle
+			LCDSprite* paddle = GAMESTATE_getPaddle();
+			float pad_x = 0;
+			float pad_y = 0;
+			pd->sprite->getPosition(paddle, &pad_x, &pad_y);
+			PDRect pad_bounds = pd->sprite->getBounds(paddle);
+			PDRect ball_bounds = pd->sprite->getBounds(sprite);
+			pd->sprite->moveTo(sprite, pad_x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5));
+			ballData->infiniteCounter = 0.f;
+		}
+		else 
 		{
 			float x = 0;
 			float y = 0;
 			pd->sprite->getPosition(sprite, &x, &y);
 
-			float nextx = x + ball_data->dx * ball_data->speed;
-			float nexty = y + ball_data->dy * ball_data->speed;
+			//TODO: add time slow case
+			float nextx = x + ballData->dx * ballData->speed;
+			float nexty = y + ballData->dy * ballData->speed;
 
 			PDRect ball_rect = pd->sprite->getCollideRect(sprite);
 
+			// Move the ball and check for collisions
 			int len = 0;
 			float actual_x = 0;
 			float actual_y = 0;
 			SpriteCollisionInfo* collisions = NULL;
 			collisions = pd->sprite->moveWithCollisions(sprite, nextx, nexty, &actual_x, &actual_y, &len);
 
-			if(len > 0)
+			// check if there is any collision
+			if (len > 0	)
 			{
-				for(int i = 0; i < len; i++)
+				//Just check for the nearest collision to the ball
+				int nearestCollision = 0;
+				float collisionDist = collisions[0].ti;
+				for (int i = 1; i < len; i++)
 				{
-					pd->sprite->moveTo(sprite, actual_x, actual_y);
-					uint8_t other_tag = pd->sprite->getTag(collisions[i].other);
-
-					if (other_tag == WALL)
+					if (collisionDist > collisions[i].ti) 
 					{
-						if (collisions[i].normal.y == -1)
-						{
-							ball_data->dead = true;
-						}
-						else
-						{
-							BALL_reflect(ball_data, collisions[i].normal);
-						}
-					}
-
-					if (other_tag == PADDLE)
-					{
-						float pad_x = 0;
-						float pad_y = 0;
-						pd->sprite->getPosition(collisions[i].other, &pad_x, &pad_y);
-					
-						bool bend = false;
-						bool angf = false;
-						if (collisions[i].normal.x != 0)
-						{
-							if (actual_y + ball_rect.width > pad_y + 3)
-							{
-								ball_data->rammed = true;
-							}
-							else
-							{
-								bend = true;
-								angf = false;
-								collisions[i].normal.y = -1;
-								pd->sprite->moveTo(sprite, nextx, pad_y - ball_rect.height);
-							}
-						}
-					
-						BALL_reflect(ball_data, collisions[i].normal);
-					
-						if (collisions[i].normal.y == -1)
-						{
-							if (!bend && abs(PADDLE_getDx(collisions[i].other)) > 1)
-							{
-								bend = true;
-								if (sign(PADDLE_getDx(collisions[i].other)) == sign(BALL_getDx(sprite)))
-								{
-									angf = true;
-								}
-								else
-								{
-									angf = false;
-								}
-							}
-					
-							if (bend)
-							{
-								if (angf)
-								{
-									BALL_setAngle(sprite, mid(0, ball_data->angle - 1, 2));
-								}
-								else
-								{
-									if (ball_data->angle == 2)
-									{
-										ball_data->dx = -ball_data->dx;
-									}
-									else
-									{
-										BALL_setAngle(sprite, mid(0, ball_data->angle + 1, 2));
-									}
-								}
-							}
-						}
-					}
-
-					if (other_tag == BRICK)
-					{
-						pd->sprite->removeSprite(collisions[i].other);
-						BRICK_destroy(collisions[i].other);
-						BALL_reflect(ball_data, collisions[i].normal);
+						collisionDist = collisions[i].ti;
+						nearestCollision = i;
 					}
 				}
+
+				BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
+
+				// TODO: Process mega ball collision
+				// TODO: Trail particles
+				// TODO: Process screen boundaries collision
+				// TODO: process ball is stuck
 			}
 		}
 	}
@@ -205,10 +184,10 @@ void BALL_setDx(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			ball_data->dx = value;
+			ballData->dx = value;
 		}
 	}
 }
@@ -217,10 +196,10 @@ float BALL_getDx(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			return ball_data->dx;
+			return ballData->dx;
 		}
 	}
 	return 0;
@@ -230,10 +209,10 @@ void BALL_setDy(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			ball_data->dy = value;
+			ballData->dy = value;
 		}
 	}
 }
@@ -242,10 +221,10 @@ float BALL_getDy(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			return ball_data->dy;
+			return ballData->dy;
 		}
 	}
 	return 0;
@@ -255,10 +234,10 @@ void BALL_setStuck(LCDSprite* sprite, bool stuck)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			ball_data->stuck = stuck;
+			ballData->stuck = stuck;
 		}
 	}
 }
@@ -267,10 +246,10 @@ bool BALL_isStuck(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			return ball_data->stuck;
+			return ballData->stuck;
 		}
 	}
 	return false;
@@ -280,10 +259,10 @@ bool BALL_isDead(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			return ball_data->dead;
+			return ballData->dead;
 		}
 	}
 	return false;
@@ -298,24 +277,24 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 {
 	if (sprite)
     {
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			ball_data->angle = angle;
+			ballData->angle = angle;
 			if (areEqual(angle, 2.f))
 			{
-				ball_data->dx = .5f * sign(ball_data->dx);
-				ball_data->dy = 1.3f * sign(ball_data->dy);
+				ballData->dx = .5f * sign(ballData->dx);
+				ballData->dy = 1.3f * sign(ballData->dy);
 			}
 			else if (areEqual(angle, 0.f))
 			{
-				ball_data->dx = 1.3f * sign(ball_data->dx);
-				ball_data->dy = .5f * sign(ball_data->dy);
+				ballData->dx = 1.3f * sign(ballData->dx);
+				ballData->dy = .5f * sign(ballData->dy);
 			}
 			else
 			{
-				ball_data->dx = 1.f * sign(ball_data->dx);
-				ball_data->dy = 1.f * sign(ball_data->dy);
+				ballData->dx = 1.f * sign(ballData->dx);
+				ballData->dy = 1.f * sign(ballData->dy);
 			}
 		}
     }
@@ -325,10 +304,10 @@ bool BALL_rammed(LCDSprite* sprite)
 {
 	if (sprite)
     {
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
 		{
-			return ball_data->rammed;
+			return ballData->rammed;
         }
     }
 	return false;
@@ -338,10 +317,153 @@ void BALL_setRammed(LCDSprite* sprite, bool rammed)
 {
 	if (sprite)
 	{
-		BallData* ball_data = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-        if (ball_data)
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+        if (ballData)
         {
-			ball_data->rammed = rammed;
+			ballData->rammed = rammed;
 		}
+	}
+}
+
+void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+
+	// Move the ball to collision position and add collision to collisionCount
+	pd->sprite->moveTo(sprite, x, y);
+	ballData->collisionCount++;
+	
+	uint8_t other_tag = pd->sprite->getTag(collision->other);
+
+	// WALL collision 
+	if (other_tag == WALL)
+	{
+		if (collision->normal.y == -1)
+		{
+			ballData->dead = true;
+		}
+		else
+		{
+			BALL_reflect(ballData, collision->normal);
+			checkInfinite(sprite);
+
+			//TODO: Spawn puft
+			//TODO: sound effect
+		}
+	}
+
+	// PADDLE Collision
+	if (other_tag == PADDLE)
+	{
+		float pad_x = 0;
+		float pad_y = 0;
+		pd->sprite->getPosition(collision->other, &pad_x, &pad_y);
+		PDRect ballRect = pd->sprite->getCollideRect(sprite);
+		PDRect padRect = pd->sprite->getCollideRect(collision->other);
+
+		bool bend = false;
+		bool angf = false;
+		ballData->infiniteCounter = 0;
+		//TODO: reset chain
+		//TODO: check suden death
+		if (collision->normal.x != 0)
+		{
+			// TODO: check pixel perfect when having the new assets
+			if (y + (ballRect.height * 0.5f) > pad_y - (padRect.height * 0.5f) + 3)
+			{
+				ballData->rammed = true;
+			}
+			else
+			{
+				bend = true;
+				angf = false;
+				collision->normal.y = -1;
+				pd->sprite->moveTo(sprite, x, pad_y - (padRect.height * 0.5f) - (ballRect.height * 0.5));
+			}
+		}
+
+		BALL_reflect(ballData, collision->normal);
+
+		// Change angle
+		if (collision->normal.y == -1)
+		{
+			if (!bend && abs(PADDLE_getDx(collision->other)) > 1)
+			{
+				bend = true;
+				if (sign(PADDLE_getDx(collision->other)) == sign(BALL_getDx(sprite)))
+				{
+					angf = true;
+				}
+				else
+				{
+					angf = false;
+				}
+			}
+
+			if (bend)
+			{
+				if (angf)
+				{
+					// Flatten angle
+					BALL_setAngle(sprite, mid(0.f, ballData->angle - 1.f, 2.f));
+				}
+				else
+				{
+					// Raise angle
+					if (areEqual(ballData->angle, 2.f))
+					{
+						ballData->dx = -ballData->dx;
+					}
+					else
+					{
+						BALL_setAngle(sprite, mid(0.f, ballData->angle + 1.f, 2.f));
+					}
+				}
+			}
+			// Reset Position
+			PDRect pad_bounds = pd->sprite->getBounds(collision->other);
+			PDRect ball_bounds = pd->sprite->getBounds(sprite);
+			pd->sprite->moveTo(sprite, x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5));
+
+			//TODO: Catch Powerup
+			//if (sticky) 
+			//{
+			//	if sticky then
+			//		releasestuck()
+			//		sticky = false
+			//		_b.stuck = true
+			//		sticky_x = _b.x - pad_x
+			//	end
+			//}
+		}
+
+		//TODO:  puft and sound
+	}
+
+	// BRICK Collision
+	if (other_tag == BRICK)
+	{
+		if (ballData->lastCollision == NONE)
+		{
+			ballData->lastCollision = BRICK;
+		}
+		else 
+		{
+			if (ballData->lastCollision != BRICK) 
+			{
+				ballData->collisionCount = 0;
+			}
+		}
+		BALL_reflect(ballData, collision->normal);
+		checkInfinite(sprite);
+
+		// TODO: HitBrick
+		if (BRICK_getType(collision->other) == INVINCIBLE)
+		{
+			// TODO: spawn puft
+		}
+		pd->sprite->removeSprite(collision->other);
+		BRICK_destroy(collision->other);
 	}
 }

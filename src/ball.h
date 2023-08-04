@@ -2,6 +2,7 @@
 #define BALL_H
 
 #include "pd_api.h"
+
 #include <stdbool.h>
 
 typedef struct BallData BallData;
@@ -20,6 +21,8 @@ bool BALL_isDead(LCDSprite* sprite);
 void BALL_setAngle(LCDSprite* sprite, float angle);
 bool BALL_rammed(LCDSprite* sprite);
 void BALL_setRammed(LCDSprite* sprite, bool rammed);
+
+void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y);
 
 SpriteCollisionResponseType BALL_collisionResponse(LCDSprite* sprite, LCDSprite* other);
 

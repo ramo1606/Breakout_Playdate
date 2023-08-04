@@ -10,4 +10,7 @@ unsigned int GAMESTATE_update(float deltaTime);
 unsigned int GAMESTATE_draw(float deltaTime);
 unsigned int GAMESTATE_destroy(void);
 
+LCDSprite* GAMESTATE_getPaddle(void);
+LCDSprite* GAMESTATE_getBall(void);
+
 #endif

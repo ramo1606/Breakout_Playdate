@@ -3,7 +3,6 @@
 #include "resourcemanager.h"
 
 #include <stdbool.h>
-#include <time.h>
 
 #define BRICK_WIDTH_SPACE_OFFSET 6
 #define BRICK_HEIGHT_SPACE_OFFSET 4
@@ -24,11 +23,10 @@ struct BrickData
 
 LCDSprite* BRICK_create(int gridPos, char type)
 {
-	/* Intializes random number generator */
-	time_t t;
-   	srand((unsigned) time(&t));
-
 	PlaydateAPI* pd = getPlaydateAPI();
+	
+	/* Intializes random number generator */
+	srand(pd->system->getCurrentTimeMilliseconds());
 
 	// Create new Sprite
 	LCDSprite* brick = pd->sprite->newSprite();
@@ -45,8 +43,12 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	int w, h;
 	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage(brickName), &w, &h, NULL, NULL, NULL);
 
+	// Create bounds rect for ball
+	PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
+	pd->sprite->setBounds(brick, bounds);
+
 	// Create collision rect for ball
-	PDRect cr = PDRectMake(0, 0, (float)w, (float)h);
+	PDRect cr = PDRectMake(1.f, 1.f, (float)(w - 2), (float)(h - 2));
 	pd->sprite->setCollideRect(brick, cr);
 	pd->sprite->setCollisionResponseFunction(brick, BRICK_collisionResponse);
 
