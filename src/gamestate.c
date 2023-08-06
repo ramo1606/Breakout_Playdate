@@ -3,6 +3,9 @@
 #include "pd_api.h"
 
 #include "memory.h"
+#include "utils.h"
+
+#include "particles.h"
 
 #include "level.h"
 #include "paddle.h"
@@ -43,6 +46,23 @@ typedef struct
 } GameState;
 
 static GameState* state = NULL;
+
+void spawnSpeedLines(float x, float y)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	/* Intializes random number generator */
+	srand(pd->system->getCurrentTimeMilliseconds());
+
+	if ((float)rand() / (float)RAND_MAX < 0.2f)
+	{
+		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
+		float ox = (float)rand() / (float)RAND_MAX * 2.5f;
+		float oy = (float)rand() / (float)RAND_MAX * pad_bounds.height;
+
+		PARTICLES_addParticle(x + ox, y + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)rand() / (float)(RAND_MAX / 15), kColorBlack, 2.f + rand((float)rand() / (float)(RAND_MAX / 4)));
+	}
+}
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -186,7 +206,6 @@ bool levelFinished()
 	bool returnValue = false;
 
 	int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
-	getPlaydateAPI()->system->logToConsole("%i", bricksSize);
 	if (bricksSize == 0)
 	{
 		return true;
@@ -298,16 +317,29 @@ unsigned int GAMESTATE_update(float deltaTime)
 		serveBall();
 	}
 
+	float pad_x = 0.f;
+	float pad_y = 0.f;
+	pd->sprite->getPosition(state->paddle, &pad_x, &pad_y);
+	PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
+
     // Check if ball is stuck
     if (BALL_isStuck(state->ball))
 	{
-		float pad_x = 0.f;
-		float pad_y = 0.f;
-		pd->sprite->getPosition(state->paddle, &pad_x, &pad_y);
-
 		PDRect ball_rect = pd->sprite->getCollideRect(state->ball);
 		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
 		//pd->sprite->markDirty(state->ball);
+	}
+
+	if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
+	{
+		if (PADDLE_getDx(state->paddle) > 0.f)
+		{
+			spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
+		}
+		else
+		{
+			spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
+		}
 	}
 
 	pd->sprite->updateAndDrawSprites();

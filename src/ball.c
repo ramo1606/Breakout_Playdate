@@ -46,7 +46,7 @@ void checkInfinite(LCDSprite* ball)
 		float newAngle = 0.f;
 		do 
 		{
-			newAngle = floorf(rand(3));
+			newAngle = floorf((float)rand() / (float)(RAND_MAX / 3));
 		} while (areEqual(newAngle, ballData->angle));
 		
 		BALL_setAngle(ball, newAngle);

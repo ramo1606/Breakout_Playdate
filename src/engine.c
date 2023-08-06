@@ -8,6 +8,7 @@
 #include "logostate.h"
 #include "startstate.h"
 #include "gamestate.h"
+#include "particles.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -28,6 +29,7 @@ void ENGINE_create(PlaydateAPI* p)
 	MEMORY_initializeMemoryTools(p);			// Initialize memory tools
 	RESOURCEMANAGER_load();						// Load resources
 	TRANSITION_MANAGER_init();
+	PARTICLES_init();
 
 	//Fonts
 	const char* err;
@@ -120,8 +122,11 @@ int ENGINE_update(void)
 	float deltaTime = getPlaydateAPI()->system->getElapsedTime();
 	getPlaydateAPI()->system->resetElapsedTime();
 
+	PARTICLES_update();
 	STATEMANAGER_update(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
+
+	PARTICLES_draw();
 	STATEMANAGER_draw(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_draw();
 
