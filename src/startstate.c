@@ -4,12 +4,17 @@
 
 #include "resourcemanager.h"
 #include "memory.h"
+#include "patterns.h"
 
 #include <stdbool.h>
 
 typedef struct
 {
     EMode nextState;
+    LCDBitmap* myBitmap;
+    int counter;
+    int ditheringIndex;
+    bool fadeOut;
 } StartState;
 
 static StartState* state = NULL;
@@ -41,26 +46,55 @@ EMode STARTSTATE_getNextState(void)
 
 unsigned int STARTSTATE_init(void)
 {
+    PlaydateAPI* pd = getPlaydateAPI();
+
     // Create GameState
     state = pd_malloc(sizeof(StartState));
     
     state->nextState = START;
+
+    state->counter = 0;
+    state->ditheringIndex = 16;
+    state->fadeOut = true;
+    state->myBitmap = pd->graphics->newBitmap(400, 240, ditheringPatterns[state->ditheringIndex]);
+
     return 0;
 }
 
 unsigned int STARTSTATE_update(float deltaTime)
 {
+    PlaydateAPI* pd = getPlaydateAPI();
+
     STARTSTATE_processInput();
+
+    if ((state->counter % 6) == 0) 
+    {
+        pd->graphics->clearBitmap(state->myBitmap, ditheringPatterns[state->ditheringIndex]);
+
+        if (state->ditheringIndex == 0 || state->ditheringIndex == 16)
+        {
+            state->fadeOut = !state->fadeOut;
+        }
+    
+        (state->fadeOut) ? state->ditheringIndex++ : state->ditheringIndex--;
+    }
+    state->counter++;
+
     return 0;
 }
 
 unsigned int STARTSTATE_draw(float deltaTime)
 {
+    PlaydateAPI* pd = getPlaydateAPI();
+
+    pd->graphics->drawBitmap(state->myBitmap, 0, 0, kBitmapUnflipped);
+    
     int x = (400 - TEXT_WIDTH) / 2;
 	int y = (240 - TEXT_HEIGHT) / 2;
 	getPlaydateAPI()->graphics->setFont(font);
 	getPlaydateAPI()->graphics->drawText("START!", strlen("START!"), kASCIIEncoding, x, y);
 
+    
     return 0;
 }
 

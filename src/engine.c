@@ -8,7 +8,6 @@
 #include "logostate.h"
 #include "startstate.h"
 #include "gamestate.h"
-#include "particles.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -122,11 +121,9 @@ int ENGINE_update(void)
 	float deltaTime = getPlaydateAPI()->system->getElapsedTime();
 	getPlaydateAPI()->system->resetElapsedTime();
 
-	PARTICLES_update();
 	STATEMANAGER_update(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
 
-	PARTICLES_draw();
 	STATEMANAGER_draw(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_draw();
 

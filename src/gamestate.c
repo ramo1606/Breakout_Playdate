@@ -60,7 +60,23 @@ void spawnSpeedLines(float x, float y)
 		float ox = (float)rand() / (float)RAND_MAX * 2.5f;
 		float oy = (float)rand() / (float)RAND_MAX * pad_bounds.height;
 
-		PARTICLES_addParticle(x + ox, y + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)rand() / (float)(RAND_MAX / 15), kColorBlack, 2.f + rand((float)rand() / (float)(RAND_MAX / 4)));
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)rand() / (float)(RAND_MAX / 15), kColorBlack, 2.f + (float)rand() / (float)(RAND_MAX / 4));
+	}
+}
+
+void spawnPuft(float x, float y)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	/* Intializes random number generator */
+	srand(pd->system->getCurrentTimeMilliseconds());
+
+	for (int i = 0; i < 5; i++) 
+	{
+		float ang = (float)rand() / (float)RAND_MAX;
+		float dx = sin(ang) * 1;
+		float dy = cos(ang) * 1;
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (rand() % 15), kColorBlack, 1 + (rand() % 2));
 	}
 }
 
@@ -278,6 +294,11 @@ void GAMESTATE_processInput(void)
 	{
 		releaseStuck();
 	}
+
+	if (current & kButtonB)
+	{
+		spawnPuft(40.f, 40.f);
+	}
 	
 	if (!buttonPressed)
 	{
@@ -309,6 +330,7 @@ unsigned int GAMESTATE_update(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
     
     GAMESTATE_processInput();
+	PARTICLES_update();
 
     // Check if ball still alive
 	if (BALL_isDead(state->ball))
@@ -349,6 +371,12 @@ unsigned int GAMESTATE_update(float deltaTime)
 
 unsigned int GAMESTATE_draw(float deltaTime)
 {
+	PlaydateAPI* pd = getPlaydateAPI();
+	pd->graphics->clear(kColorWhite);
+
+	PARTICLES_draw();
+	pd->sprite->drawSprites();
+
     return 0;
 }
 
