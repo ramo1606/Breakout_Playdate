@@ -34,11 +34,6 @@ struct BallData
 
 void checkInfinite(LCDSprite* ball) 
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
-	/* Intializes random number generator */
-	srand(pd->system->getCurrentTimeMilliseconds());
-
 	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(ball);
 	if (ballData->infiniteCounter > MAX_COLLISIONS_COUNT)
 	{
@@ -56,6 +51,9 @@ void checkInfinite(LCDSprite* ball)
 LCDSprite* BALL_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
+
+	/* Intializes random number generator */
+	srand(pd->system->getSecondsSinceEpoch(NULL));
 
 	LCDSprite* ball = pd->sprite->newSprite();
 

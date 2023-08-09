@@ -51,16 +51,13 @@ void spawnSpeedLines(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
-	/* Intializes random number generator */
-	srand(pd->system->getCurrentTimeMilliseconds());
-
 	if ((float)rand() / (float)RAND_MAX < 0.2f)
 	{
 		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
-		float ox = (float)rand() / (float)RAND_MAX * 2.5f;
-		float oy = (float)rand() / (float)RAND_MAX * pad_bounds.height;
+		float ox = ((float)rand() / (float)RAND_MAX) * 2.5f;
+		float oy = ((float)rand() / (float)RAND_MAX) * pad_bounds.height;
 
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)rand() / (float)(RAND_MAX / 15), kColorBlack, 2.f + (float)rand() / (float)(RAND_MAX / 4));
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)(rand() % 15), kColorBlack, 2.f + (float)(rand() % 4));
 	}
 }
 
@@ -68,15 +65,12 @@ void spawnPuft(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
-	/* Intializes random number generator */
-	srand(pd->system->getCurrentTimeMilliseconds());
-
 	for (int i = 0; i < 5; i++) 
 	{
 		float ang = (float)rand() / (float)RAND_MAX;
 		float dx = sin(ang) * 1;
 		float dy = cos(ang) * 1;
-		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (rand() % 15), kColorBlack, 1 + (rand() % 2));
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (float)(rand() % 15), kColorBlack, 1 + (float)(rand() % 2));
 	}
 }
 
@@ -318,8 +312,14 @@ EMode GAMESTATE_getNextState(void)
 
 unsigned int GAMESTATE_init(void)
 {
-    // Create GameState
+	PlaydateAPI* pd = getPlaydateAPI();
+    
+	// Create GameState
     state = pd_malloc(sizeof(GameState));
+
+	/* Intializes random number generator */
+	srand(pd->system->getSecondsSinceEpoch(NULL));
+	
 	startGame();
 
     return 0;
@@ -330,7 +330,6 @@ unsigned int GAMESTATE_update(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
     
     GAMESTATE_processInput();
-	PARTICLES_update();
 
     // Check if ball still alive
 	if (BALL_isDead(state->ball))
@@ -349,7 +348,6 @@ unsigned int GAMESTATE_update(float deltaTime)
 	{
 		PDRect ball_rect = pd->sprite->getCollideRect(state->ball);
 		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
-		//pd->sprite->markDirty(state->ball);
 	}
 
 	if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
@@ -364,7 +362,7 @@ unsigned int GAMESTATE_update(float deltaTime)
 		}
 	}
 
-	pd->sprite->updateAndDrawSprites();
+	PARTICLES_update();
 
     return 0;
 }
@@ -374,8 +372,8 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
 	pd->graphics->clear(kColorWhite);
 
+	pd->sprite->updateAndDrawSprites();
 	PARTICLES_draw();
-	pd->sprite->drawSprites();
 
     return 0;
 }

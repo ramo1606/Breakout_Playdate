@@ -26,7 +26,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	PlaydateAPI* pd = getPlaydateAPI();
 	
 	/* Intializes random number generator */
-	srand(pd->system->getCurrentTimeMilliseconds());
+	srand(pd->system->getSecondsSinceEpoch(NULL));
 
 	// Create new Sprite
 	LCDSprite* brick = pd->sprite->newSprite();
