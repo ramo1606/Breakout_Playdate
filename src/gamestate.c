@@ -47,32 +47,32 @@ typedef struct
 
 static GameState* state = NULL;
 
-void spawnSpeedLines(float x, float y)
-{
-	PlaydateAPI* pd = getPlaydateAPI();
+//void spawnSpeedLines(float x, float y)
+//{
+//	PlaydateAPI* pd = getPlaydateAPI();
+//
+//	if ((float)rand() / (float)RAND_MAX < 0.2f)
+//	{
+//		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
+//		float ox = ((float)rand() / (float)RAND_MAX) * 2.5f;
+//		float oy = ((float)rand() / (float)RAND_MAX) * pad_bounds.height;
+//
+//		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)(rand() % 15), kColorBlack, 2.f + (float)(rand() % 4));
+//	}
+//}
 
-	if ((float)rand() / (float)RAND_MAX < 0.2f)
-	{
-		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
-		float ox = ((float)rand() / (float)RAND_MAX) * 2.5f;
-		float oy = ((float)rand() / (float)RAND_MAX) * pad_bounds.height;
-
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)(rand() % 15), kColorBlack, 2.f + (float)(rand() % 4));
-	}
-}
-
-void spawnPuft(float x, float y)
-{
-	PlaydateAPI* pd = getPlaydateAPI();
-
-	for (int i = 0; i < 5; i++) 
-	{
-		float ang = (float)rand() / (float)RAND_MAX;
-		float dx = sin(ang) * 1;
-		float dy = cos(ang) * 1;
-		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (float)(rand() % 15), kColorBlack, 1 + (float)(rand() % 2));
-	}
-}
+//void spawnPuft(float x, float y)
+//{
+//	PlaydateAPI* pd = getPlaydateAPI();
+//
+//	for (int i = 0; i < 5; i++) 
+//	{
+//		float ang = (float)rand() / (float)RAND_MAX;
+//		float dx = sin(ang) * 1;
+//		float dy = cos(ang) * 1;
+//		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (float)(rand() % 15), kColorBlack, 1 + (float)(rand() % 2));
+//	}
+//}
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -133,8 +133,6 @@ void serveBall(void)
 	BALL_setDy(state->ball, -1.f);
 	BALL_setAngle(state->ball, 1.f);
 	BALL_setStuck(state->ball, true);
-
-
 }
 
 void releaseStuck(void) 
@@ -289,10 +287,10 @@ void GAMESTATE_processInput(void)
 		releaseStuck();
 	}
 
-	if (current & kButtonB)
-	{
-		spawnPuft(40.f, 40.f);
-	}
+	//if (current & kButtonB)
+	//{
+	//	spawnPuft(40.f, 40.f);
+	//}
 	
 	if (!buttonPressed)
 	{
@@ -350,19 +348,19 @@ unsigned int GAMESTATE_update(float deltaTime)
 		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
 	}
 
-	if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
-	{
-		if (PADDLE_getDx(state->paddle) > 0.f)
-		{
-			spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
-		}
-		else
-		{
-			spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
-		}
-	}
+	//if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
+	//{
+	//	if (PADDLE_getDx(state->paddle) > 0.f)
+	//	{
+	//		spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
+	//	}
+	//	else
+	//	{
+	//		spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
+	//	}
+	//}
 
-	PARTICLES_update();
+	//PARTICLES_update();
 
     return 0;
 }
@@ -373,7 +371,7 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	pd->graphics->clear(kColorWhite);
 
 	pd->sprite->updateAndDrawSprites();
-	PARTICLES_draw();
+	//PARTICLES_draw();
 
     return 0;
 }
