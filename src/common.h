@@ -48,8 +48,8 @@ typedef enum
 typedef enum
 {
 	REST,
-	CLOSE,
-	OPEN
+	FADEOUT,
+	FADEIN
 } ETransitionState;
 
 // PlaydateAPI

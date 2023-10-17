@@ -368,7 +368,7 @@ unsigned int GAMESTATE_update(float deltaTime)
 unsigned int GAMESTATE_draw(float deltaTime)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
-	pd->graphics->clear(kColorWhite);
+	pd->graphics->setBackgroundColor(kColorClear);
 
 	pd->sprite->updateAndDrawSprites();
 	//PARTICLES_draw();

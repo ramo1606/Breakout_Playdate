@@ -1,106 +1,105 @@
 #include "transitionmanager.h"
 #include "memory.h"
+#include "patterns.h"
 
 #include "pd_api.h"
 
 #include <stdbool.h>
 
-#define TRANSITION_TIME_MAX 15
-#define TRANSITION_RECT_W_MAX 400
-
 struct TransitionManager
 {
     ETransitionState transitState;
-    int closeTime;
-    int openTime;
+    LCDBitmap* fadeBitmap;
+    int counter;
     bool changeReady;
-    int rectWidth;
-    int rectChangeSpd;
+    int ditheringIndex;
     EMode selectedNextMenu;
 };
 
 static TransitionManager* transitionManager = NULL;
 
-void TRANSITION_MANAGER_startCloseTransit(EMode nextState)
+void TRANSITION_MANAGER_fadeIn(EMode nextState)
 {
     if (transitionManager->transitState == REST)
     {
-        transitionManager->transitState = CLOSE;
-        transitionManager->closeTime = TRANSITION_TIME_MAX;
+        transitionManager->transitState = FADEIN;
+        transitionManager->counter = 0;
         transitionManager->selectedNextMenu = nextState;
     }
 }
 
-void TRANSITION_MANAGER_startOpenTransit(void)
+void TRANSITION_MANAGER_fadeOut(void)
 {
     transitionManager->changeReady = false;
-    transitionManager->transitState = OPEN;
-    transitionManager->rectWidth = 0;
-    transitionManager->openTime = TRANSITION_TIME_MAX;
+    transitionManager->transitState = FADEOUT;
+    transitionManager->counter = 0;
 }
 
 unsigned int TRANSITION_MANAGER_init(void)
 {
+    PlaydateAPI* pd = getPlaydateAPI();
+
     transitionManager = pd_malloc(sizeof(TransitionManager));
     transitionManager->transitState = REST;
-    transitionManager->openTime = 0;
-    transitionManager->closeTime = 0;
+    transitionManager->counter = 0;
     transitionManager->changeReady = false;
-    transitionManager->rectWidth = 0;
-    transitionManager->rectChangeSpd = 30;
+    transitionManager->ditheringIndex = 16;
+    transitionManager->fadeBitmap = pd->graphics->newBitmap(400, 240, ditheringPatterns[transitionManager->ditheringIndex]);
     transitionManager->selectedNextMenu = BLANK;
 }
 
 unsigned int TRANSITION_MANAGER_update(State* state)
 {
+    PlaydateAPI* pd = getPlaydateAPI();
+
     if (transitionManager->changeReady)
     {
         state->setNextState(transitionManager->selectedNextMenu);
-        TRANSITION_MANAGER_startOpenTransit();
+        TRANSITION_MANAGER_fadeOut();
     }
 
-    if (transitionManager->transitState == CLOSE)
+    if (transitionManager->transitState == FADEIN)
     {
-        if (transitionManager->closeTime > 0)
+        if ((transitionManager->counter % 2) == 0)
         {
-            transitionManager->closeTime -= 1;
-            transitionManager->rectWidth += transitionManager->rectChangeSpd;
-        }
-        else
-        {
-            transitionManager->changeReady = true;
+            pd->graphics->clearBitmap(transitionManager->fadeBitmap, ditheringPatterns[transitionManager->ditheringIndex]);
+            
+            if (transitionManager->ditheringIndex != 0)
+            {
+                transitionManager->ditheringIndex--;
+            }
+            else
+            {
+                transitionManager->changeReady = true;
+            }
         }
     }
-    else if (transitionManager->transitState == OPEN)
+    else if (transitionManager->transitState == FADEOUT)
     {
-        if (transitionManager->openTime > 0)
+        if ((transitionManager->counter % 4) == 0)
         {
-            transitionManager->openTime -= 1;
-            transitionManager->rectWidth += transitionManager->rectChangeSpd;
-        }
-        else
-        {
-            transitionManager->transitState = REST;
-            transitionManager->selectedNextMenu = BLANK;
-            transitionManager-> rectWidth = 0;
+            pd->graphics->clearBitmap(transitionManager->fadeBitmap, ditheringPatterns[transitionManager->ditheringIndex]);
+            
+            if (transitionManager->ditheringIndex != 16)
+            {
+                transitionManager->ditheringIndex++;
+            }
+            else
+            {
+                transitionManager->transitState = REST;
+                transitionManager->selectedNextMenu = BLANK;
+            }
         }
     }
+
+    transitionManager->counter++;
 }
 
 unsigned int TRANSITION_MANAGER_draw()
 {
     PlaydateAPI* pd = getPlaydateAPI();
-    if (transitionManager->transitState == CLOSE)
-    {
-        pd->graphics->fillRect(0, 0, transitionManager->rectWidth, pd->display->getHeight(), kColorBlack);
-    }
-    else if (transitionManager->transitState == OPEN)
-    {
-        pd->graphics->fillRect(transitionManager->rectWidth, 0, pd->display->getWidth(), pd->display->getHeight(), kColorBlack);
-    }
-    else if (transitionManager->transitState == REST)
-    {
-    }
+    
+    pd->graphics->drawBitmap(transitionManager->fadeBitmap, 0, 0, kBitmapUnflipped);
 }
 
 unsigned int TRANSITION_MANAGER_destroy(void)

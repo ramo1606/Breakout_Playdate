@@ -121,11 +121,11 @@ int ENGINE_update(void)
 	float deltaTime = getPlaydateAPI()->system->getElapsedTime();
 	getPlaydateAPI()->system->resetElapsedTime();
 
-	STATEMANAGER_update(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
+	STATEMANAGER_update(engine.stateManager, deltaTime);
 
-	STATEMANAGER_draw(engine.stateManager, deltaTime);
 	TRANSITION_MANAGER_draw();
+	STATEMANAGER_draw(engine.stateManager, deltaTime);
 
 	return 1;
 }

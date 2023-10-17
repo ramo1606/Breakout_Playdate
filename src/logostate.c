@@ -44,7 +44,7 @@ unsigned int LOGOSTATE_update(float deltaTime)
     state->introTime += 1;
     if (state->introTime > INTRO_TIME)
     {
-        TRANSITION_MANAGER_startCloseTransit(START);
+        TRANSITION_MANAGER_fadeIn(START);
         state->introTime = 0;
     }
     return 0;
@@ -57,7 +57,6 @@ unsigned int LOGOSTATE_draw(float deltaTime)
 	int y = (240 - TEXT_HEIGHT) / 2;
 	getPlaydateAPI()->graphics->setFont(font);
 	getPlaydateAPI()->graphics->drawText("LOGO!", strlen("LOGO!"), kASCIIEncoding, x, y);
-    TRANSITION_MANAGER_draw();
 
     return 0;
 }
