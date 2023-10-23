@@ -3,7 +3,7 @@
 
 #include "pd_api.h"
 
-LCDPattern BayerDither00 =
+static LCDPattern BayerDither00 =
 {
         0x00,
         0x00,
@@ -23,7 +23,7 @@ LCDPattern BayerDither00 =
         0xFF,
 };
 
-LCDPattern BayerDither01 =
+static LCDPattern BayerDither01 =
 {
         0x11,
         0x00,
@@ -43,33 +43,13 @@ LCDPattern BayerDither01 =
         0xFF,
 };
 
-LCDPattern BayerDither02 =
+static LCDPattern BayerDither02 =
 {
         0x11,
         0x00,
         0x44,
         0x00,
         0x11,
-        0x00,
-        0x44,
-        0x00,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-};
-
-LCDPattern BayerDither03 =
-{
-        0x55,
-        0x00,
-        0x44,
-        0x00,
-        0x55,
         0x00,
         0x44,
         0x00,
@@ -83,7 +63,27 @@ LCDPattern BayerDither03 =
         0xFF,
 };
 
-LCDPattern BayerDither04 =
+static LCDPattern BayerDither03 =
+{
+        0x55,
+        0x00,
+        0x44,
+        0x00,
+        0x55,
+        0x00,
+        0x44,
+        0x00,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+};
+
+static LCDPattern BayerDither04 =
 {
         0x55,
         0x00,
@@ -103,7 +103,7 @@ LCDPattern BayerDither04 =
         0xFF,
 };
 
-LCDPattern BayerDither05 =
+static LCDPattern BayerDither05 =
 {
         0x55,
         0x22,
@@ -123,7 +123,7 @@ LCDPattern BayerDither05 =
         0xFF,
 };
 
-LCDPattern BayerDither06 =
+static LCDPattern BayerDither06 =
 {
         0x55,
         0x22,
@@ -143,7 +143,7 @@ LCDPattern BayerDither06 =
         0xFF,
 };
 
-LCDPattern BayerDither07 =
+static LCDPattern BayerDither07 =
 {
         0x55,
         0xAA,
@@ -163,7 +163,7 @@ LCDPattern BayerDither07 =
         0xFF,
 };
 
-LCDPattern BayerDither08 =
+static LCDPattern BayerDither08 =
 {
         0x55,
         0xAA,
@@ -183,7 +183,7 @@ LCDPattern BayerDither08 =
         0xFF,
 };
 
-LCDPattern BayerDither09 =
+static LCDPattern BayerDither09 =
 {
         0x77,
         0xAA,
@@ -203,7 +203,7 @@ LCDPattern BayerDither09 =
         0xFF,
 };
 
-LCDPattern BayerDither10 =
+static LCDPattern BayerDither10 =
 {
         0x77,
         0xAA,
@@ -223,7 +223,7 @@ LCDPattern BayerDither10 =
         0xFF,
 };
 
-LCDPattern BayerDither11 =
+static LCDPattern BayerDither11 =
 {
         0xFF,
         0xAA,
@@ -243,7 +243,7 @@ LCDPattern BayerDither11 =
         0xFF,
 };
 
-LCDPattern BayerDither12 =
+static LCDPattern BayerDither12 =
 {
         0xFF,
         0xAA,
@@ -263,7 +263,7 @@ LCDPattern BayerDither12 =
         0xFF,
 };
 
-LCDPattern BayerDither13 =
+static LCDPattern BayerDither13 =
 {
         0xFF,
         0xBB,
@@ -283,7 +283,7 @@ LCDPattern BayerDither13 =
         0xFF,
 };
 
-LCDPattern BayerDither14 =
+static LCDPattern BayerDither14 =
 {
         0xFF,
         0xBB,
@@ -291,26 +291,6 @@ LCDPattern BayerDither14 =
         0xEE,
         0xFF,
         0xBB,
-        0xFF,
-        0xEE,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-};
-
-LCDPattern BayerDither15 =
-{
-        0xFF,
-        0xFF,
-        0xFF,
-        0xEE,
-        0xFF,
-        0xFF,
         0xFF,
         0xEE,
         0xFF,
@@ -323,7 +303,27 @@ LCDPattern BayerDither15 =
         0xFF,
 };
 
-LCDPattern BayerDither16 =
+static LCDPattern BayerDither15 =
+{
+        0xFF,
+        0xFF,
+        0xFF,
+        0xEE,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xEE,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+        0xFF,
+};
+
+static LCDPattern BayerDither16 =
 {
         0xFF,
         0xFF,
@@ -343,7 +343,7 @@ LCDPattern BayerDither16 =
         0xFF,
 };
 
-LCDPattern* ditheringPatterns[17] =
+static LCDPattern* ditheringPatterns[17] =
 {
     &BayerDither00,
     &BayerDither01,

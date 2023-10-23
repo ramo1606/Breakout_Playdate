@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "memory.h"
 #include "resourcemanager.h"
+#include "particles.h"
 
 #include "gamestate.h"
 #include "brick.h"
@@ -41,7 +42,7 @@ void checkInfinite(LCDSprite* ball)
 		float newAngle = 0.f;
 		do 
 		{
-			newAngle = floorf((float)rand() / (float)(RAND_MAX / 3));
+			newAngle = floorf(randomFloat(0.0f, 3.0f));
 		} while (areEqual(newAngle, ballData->angle));
 		
 		BALL_setAngle(ball, newAngle);
@@ -51,9 +52,6 @@ void checkInfinite(LCDSprite* ball)
 LCDSprite* BALL_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
-
-	/* Intializes random number generator */
-	srand(pd->system->getSecondsSinceEpoch(NULL));
 
 	LCDSprite* ball = pd->sprite->newSprite();
 
@@ -345,8 +343,8 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		{
 			BALL_reflect(ballData, collision->normal);
 			checkInfinite(sprite);
-
-			//TODO: Spawn puft
+			
+			PARTICLES_spawnPuft(x, y);
 			//TODO: sound effect
 		}
 	}
@@ -357,8 +355,8 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		float pad_x = 0;
 		float pad_y = 0;
 		pd->sprite->getPosition(collision->other, &pad_x, &pad_y);
-		PDRect ballRect = pd->sprite->getCollideRect(sprite);
 		PDRect padRect = pd->sprite->getCollideRect(collision->other);
+		PDRect ballRect = pd->sprite->getCollideRect(sprite);
 
 		bool bend = false;
 		bool angf = false;
@@ -371,6 +369,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			if (y + (ballRect.height * 0.5f) > pad_y - (padRect.height * 0.5f) + 3)
 			{
 				ballData->rammed = true;
+				PARTICLES_spawnPuft(x, y);
 			}
 			else
 			{
@@ -436,6 +435,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			//}
 		}
 
+		PARTICLES_spawnPuft(x, y);
 		//TODO:  puft and sound
 	}
 
@@ -459,7 +459,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		// TODO: HitBrick
 		if (BRICK_getType(collision->other) == INVINCIBLE)
 		{
-			// TODO: spawn puft
+			PARTICLES_spawnPuft(x, y);
 		}
 		pd->sprite->removeSprite(collision->other);
 		BRICK_destroy(collision->other);

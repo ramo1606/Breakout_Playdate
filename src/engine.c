@@ -3,6 +3,7 @@
 #include "resourcemanager.h"
 #include "memory.h"
 
+#include "utils.h"
 #include "transitionmanager.h"
 #include "statemanager.h"
 #include "logostate.h"
@@ -29,6 +30,7 @@ void ENGINE_create(PlaydateAPI* p)
 	RESOURCEMANAGER_load();						// Load resources
 	TRANSITION_MANAGER_init();
 	PARTICLES_init();
+	UTILS_init();
 
 	//Fonts
 	const char* err;

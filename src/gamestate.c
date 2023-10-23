@@ -6,6 +6,7 @@
 #include "utils.h"
 
 #include "particles.h"
+#include "patterns.h"
 
 #include "level.h"
 #include "paddle.h"
@@ -46,33 +47,6 @@ typedef struct
 } GameState;
 
 static GameState* state = NULL;
-
-//void spawnSpeedLines(float x, float y)
-//{
-//	PlaydateAPI* pd = getPlaydateAPI();
-//
-//	if ((float)rand() / (float)RAND_MAX < 0.2f)
-//	{
-//		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
-//		float ox = ((float)rand() / (float)RAND_MAX) * 2.5f;
-//		float oy = ((float)rand() / (float)RAND_MAX) * pad_bounds.height;
-//
-//		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + (float)(rand() % 15), kColorBlack, 2.f + (float)(rand() % 4));
-//	}
-//}
-
-//void spawnPuft(float x, float y)
-//{
-//	PlaydateAPI* pd = getPlaydateAPI();
-//
-//	for (int i = 0; i < 5; i++) 
-//	{
-//		float ang = (float)rand() / (float)RAND_MAX;
-//		float dx = sin(ang) * 1;
-//		float dy = cos(ang) * 1;
-//		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, (float)(rand() % 15), kColorBlack, 1 + (float)(rand() % 2));
-//	}
-//}
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -269,7 +243,8 @@ void GAMESTATE_processInput(void)
     PlaydateAPI* pd = getPlaydateAPI();
 
 	PDButtons current;
-	pd->system->getButtonState(&current, NULL, NULL);
+	PDButtons currentReleased;
+	pd->system->getButtonState(&current, NULL, &currentReleased);
 	bool buttonPressed = false;
 
 	if (current & kButtonLeft)
@@ -287,9 +262,10 @@ void GAMESTATE_processInput(void)
 		releaseStuck();
 	}
 
-	//if (current & kButtonB)
+	//if (currentReleased & kButtonB)
 	//{
-	//	spawnPuft(40.f, 40.f);
+	//	spawnPuft(80.f, 80.f);
+	//	buttonPressed = true;
 	//}
 	
 	if (!buttonPressed)
@@ -314,9 +290,6 @@ unsigned int GAMESTATE_init(void)
     
 	// Create GameState
     state = pd_malloc(sizeof(GameState));
-
-	/* Intializes random number generator */
-	srand(pd->system->getSecondsSinceEpoch(NULL));
 	
 	startGame();
 
@@ -348,19 +321,19 @@ unsigned int GAMESTATE_update(float deltaTime)
 		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
 	}
 
-	//if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
-	//{
-	//	if (PADDLE_getDx(state->paddle) > 0.f)
-	//	{
-	//		spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
-	//	}
-	//	else
-	//	{
-	//		spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
-	//	}
-	//}
+	if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
+	{
+		if (PADDLE_getDx(state->paddle) > 0.f)
+		{
+			//spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
+		}
+		else
+		{
+			//spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
+		}
+	}
 
-	//PARTICLES_update();
+	PARTICLES_update();
 
     return 0;
 }
@@ -371,7 +344,7 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	pd->graphics->setBackgroundColor(kColorClear);
 
 	pd->sprite->updateAndDrawSprites();
-	//PARTICLES_draw();
+	PARTICLES_draw();
 
     return 0;
 }

@@ -1,6 +1,12 @@
 #include "utils.h"
 
-static float time = 0;
+void UTILS_init()
+{
+    PlaydateAPI* pd = getPlaydateAPI();
+
+    /* Intializes random number generator */
+    srand(pd->system->getSecondsSinceEpoch(NULL));
+}
 
 bool areEqual(float a, float b)
 {
@@ -30,33 +36,12 @@ float mid(float a, float b, float c)
         return a;
 }
 
-void transitionUpdate(void)
+int randomInt(int min, int max)
 {
-    time += 0.15f;
+    return min + (rand() % ((max - min) + 1));
 }
 
-void transitionDraw(void)
+float randomFloat(float min, float max)
 {
-    // TODO: look at how to stop this after one pass
-    // column loop
-    for (int i = 0; i < 11; i++)
-    {
-        // row loop
-        for (int j = 0; j < 11; j++)
-        {
-            // x positions are snapped to 40px columns
-            int x = i * 40;
-
-            // this number sweeps back and forth from -1 to 1
-            float osc1 = sinf(time + i * 0.3f);
-            // this number also sweeps back and forth, but at a different rate
-            float osc2 = sinf(time / 4 + j * 0.09f);
-
-            // y positions are influenced by one of the sweepy numbers
-            int y = j * 40 + osc1 * 10;
-
-            // the circles radius are influenced by the other sweepy number
-            getPlaydateAPI()->graphics->fillRect(x - (osc2 * 40), y - (osc2 * 40), osc2 * 40 * 2, osc2 * 40 * 2, kColorBlack);
-        }
-    }
+    return min + (float)(rand() / ((float)RAND_MAX / (max - min)));
 }

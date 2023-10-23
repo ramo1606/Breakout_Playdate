@@ -1,5 +1,6 @@
 #include "brick.h"
 #include "memory.h"
+#include "utils.h"
 #include "resourcemanager.h"
 
 #include <stdbool.h>
@@ -24,9 +25,6 @@ struct BrickData
 LCDSprite* BRICK_create(int gridPos, char type)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
-	
-	/* Intializes random number generator */
-	srand(pd->system->getSecondsSinceEpoch(NULL));
 
 	// Create new Sprite
 	LCDSprite* brick = pd->sprite->newSprite();
@@ -64,11 +62,11 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	BrickData* brickData = pd_malloc(sizeof(BrickData));
 	brickData->v = true;
 	brickData->dx = 0.f;
-	brickData->dy = (float)rand()/(float)(RAND_MAX/64);
+	brickData->dy = randomFloat(0.f, 64.f);
 	brickData->type = BRICK_translateType(type);
 	brickData->hp = (brickData->type == HARDENED) ? BRICK_HP * 2 : BRICK_HP;
 	brickData->ox = 0;
-	brickData->oy = 128+rand()/(RAND_MAX/128);
+	brickData->oy = 128+randomInt(0, 128);
 	brickData->fsh = 0;
 	pd->sprite->setUserdata(brick, (void*)brickData);
 
