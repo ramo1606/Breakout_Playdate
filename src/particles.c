@@ -214,13 +214,25 @@ void PARTICLES_removeAllParticles(void)
 //	}
 //}
 
+void PARTICLES_spawnTrail(float x, float y, float radius)
+{
+	if(randomFloat(0.0f, 1.0f) < 0.5f)
+	{
+		float ang = randomFloat(0.0f, 1.0f);
+		float ox = (float)sin(ang) * radius * 0.3f;
+		float oy = (float)cos(ang) * radius * 0.3f;
+
+		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), kColorBlack, 0.0f);
+	}
+}
+
 void PARTICLES_spawnPuft(float x, float y)
 {
 	for (int i = 0; i < 5; i++)
 	{
 		float ang = randomFloat(0.0f, 1.0f);
-		float dx = (float)sin(ang) * 4;
-		float dy = (float)cos(ang) * 4;
-		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, randomFloat(0.0f, 15.0f), ditheringPatterns[6], 4 + randomFloat(0.0f, 6.0f));
+		float dx = (float)sin(ang) * 6.0f;
+		float dy = (float)cos(ang) * 6.0f;
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, randomFloat(4.0f, 20.0f), ditheringPatterns[6], 6 + randomFloat(0.0f, 8.0f));
 	}
 }

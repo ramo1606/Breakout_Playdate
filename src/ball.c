@@ -118,6 +118,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
 		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+		PDRect ball_bounds = pd->sprite->getBounds(sprite);
 
 		if(BALL_isStuck(sprite))
 		{
@@ -127,7 +128,6 @@ void BALL_updateSprite(LCDSprite* sprite)
 			float pad_y = 0;
 			pd->sprite->getPosition(paddle, &pad_x, &pad_y);
 			PDRect pad_bounds = pd->sprite->getBounds(paddle);
-			PDRect ball_bounds = pd->sprite->getBounds(sprite);
 			pd->sprite->moveTo(sprite, pad_x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5));
 			ballData->infiniteCounter = 0.f;
 		}
@@ -166,12 +166,13 @@ void BALL_updateSprite(LCDSprite* sprite)
 				}
 
 				BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
-
-				// TODO: Process mega ball collision
-				// TODO: Trail particles
-				// TODO: Process screen boundaries collision
-				// TODO: process ball is stuck
 			}
+
+			// TODO: Process mega ball collision
+			// TODO: Trail particles
+			PARTICLES_spawnTrail(x, y, ball_bounds.width * 0.5f);
+			// TODO: Process screen boundaries collision
+			// TODO: process ball is stuck
 		}
 	}
 }
