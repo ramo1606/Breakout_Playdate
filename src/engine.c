@@ -42,16 +42,25 @@ void ENGINE_create(PlaydateAPI* p)
 	STATEMANAGER_init(engine.stateManager);
 	
 	// Create initial state
-	State* logoState = pd_malloc(sizeof(State));
-	logoState->setNextState = LOGOSTATE_setNextState;
-	logoState->getNextState = LOGOSTATE_getNextState;
-	logoState->init = LOGOSTATE_init;
-	logoState->update = LOGOSTATE_update;
-	logoState->draw = LOGOSTATE_draw;
-	logoState->destroy = LOGOSTATE_destroy;
+	//State* logoState = pd_malloc(sizeof(State));
+	//logoState->setNextState = LOGOSTATE_setNextState;
+	//logoState->getNextState = LOGOSTATE_getNextState;
+	//logoState->init = LOGOSTATE_init;
+	//logoState->update = LOGOSTATE_update;
+	//logoState->draw = LOGOSTATE_draw;
+	//logoState->destroy = LOGOSTATE_destroy;
 
-	LOGOSTATE_init();
-	STATEMANAGER_push(engine.stateManager, logoState);
+	//STATEMANAGER_push(engine.stateManager, logoState);
+
+	State* startState = pd_malloc(sizeof(State));
+	startState->setNextState = STARTSTATE_setNextState;
+	startState->getNextState = STARTSTATE_getNextState;
+	startState->init = STARTSTATE_init;
+	startState->update = STARTSTATE_update;
+	startState->draw = STARTSTATE_draw;
+	startState->destroy = STARTSTATE_destroy;
+
+	STATEMANAGER_push(engine.stateManager, startState);
 
 	//Mode
 	engine.mode = STATEMANAGER_top(engine.stateManager)->getNextState();
@@ -84,6 +93,8 @@ void updateState(void)
 		if (engine.mode != currentState->getNextState())
 		{
 			engine.mode = currentState->getNextState();
+			STATEMANAGER_pop(engine.stateManager);
+			pd_free(currentState);
 
 			currentState = pd_malloc(sizeof(State));
 			currentState->setNextState = GAMESTATE_setNextState;

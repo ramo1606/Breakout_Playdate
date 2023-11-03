@@ -8,7 +8,7 @@
 
 #include "DG_dynarr.h"
 
-#define PARTICLES_POOL_MAX 300
+#define PARTICLES_POOL_MAX 500
 
 struct Particle
 {
@@ -216,13 +216,13 @@ void PARTICLES_removeAllParticles(void)
 
 void PARTICLES_spawnTrail(float x, float y, float radius)
 {
-	if(randomFloat(0.0f, 1.0f) < 0.5f)
+	if(randomFloat(0.0f, 1.0f) < 0.8f)
 	{
 		float ang = randomFloat(0.0f, 1.0f);
 		float ox = (float)sin(ang) * radius * 0.3f;
 		float oy = (float)cos(ang) * radius * 0.3f;
 
-		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), kColorBlack, 0.0f);
+		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), ditheringPatterns[13], 0.0f);
 	}
 }
 

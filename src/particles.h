@@ -5,6 +5,8 @@
 
 #include "pd_api.h"
 
+#include <stdbool.h>
+
 //particles
 // type 0 - static pixel
 // type 1 - gravity pixel
@@ -35,6 +37,7 @@ void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType t
 void PARTICLES_removeParticle(int index);
 void PARTICLES_removeAllParticles(void);
 
+void PARTICLES_spawnBackgroundParticles(bool top, uint32_t timer);
 void PARTICLES_spawnTrail(float x, float y, float radius);
 void PARTICLES_spawnPuft(float x, float y);
 

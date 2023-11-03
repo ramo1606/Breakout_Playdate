@@ -290,6 +290,8 @@ unsigned int GAMESTATE_init(void)
     
 	// Create GameState
     state = pd_malloc(sizeof(GameState));
+
+	PARTICLES_init();
 	
 	startGame();
 
@@ -343,8 +345,8 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
 	pd->graphics->setBackgroundColor(kColorClear);
 
-	pd->sprite->updateAndDrawSprites();
 	PARTICLES_draw();
+	pd->sprite->updateAndDrawSprites();
 
     return 0;
 }

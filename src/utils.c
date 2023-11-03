@@ -38,7 +38,14 @@ float mid(float a, float b, float c)
 
 int randomInt(int min, int max)
 {
-    return min + (rand() % ((max - min) + 1));
+    if (min > max)
+    {
+        int tmp = max;
+        max = min;
+        min = tmp;
+    }
+
+    return (rand() % (abs(max - min) + 1) + min);
 }
 
 float randomFloat(float min, float max)
