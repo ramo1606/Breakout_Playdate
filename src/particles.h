@@ -37,7 +37,7 @@ void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType t
 void PARTICLES_removeParticle(int index);
 void PARTICLES_removeAllParticles(void);
 
-void PARTICLES_spawnBackgroundParticles(bool top, uint32_t timer);
+void PARTICLES_spawnSpeedLines(LCDSprite* sprite, float x, float y);
 void PARTICLES_spawnTrail(float x, float y, float radius);
 void PARTICLES_spawnPuft(float x, float y);
 

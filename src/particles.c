@@ -200,19 +200,19 @@ void PARTICLES_removeAllParticles(void)
 	}
 }
 
-//void PARTICLES_spawnSpeedLines(float x, float y)
-//{
-//	PlaydateAPI* pd = getPlaydateAPI();
-//
-//	if (randomFloat(0.0f, 1.0f) < 0.2f)
-//	{
-//		PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
-//		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
-//		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
-//
-//		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(state->paddle), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), ditheringPatterns[6], 2.f + randomFloat(0.0f, 4.0f));
-//	}
-//}
+void PARTICLES_spawnSpeedLines(LCDSprite* sprite, float x, float y)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	if (randomFloat(0.0f, 1.0f) < 0.2f)
+	{
+		PDRect pad_bounds = pd->sprite->getBounds(sprite);
+		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
+		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
+
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 2.f + randomFloat(0.0f, 4.0f));
+	}
+}
 
 void PARTICLES_spawnTrail(float x, float y, float radius)
 {

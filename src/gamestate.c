@@ -265,16 +265,16 @@ void GAMESTATE_processInput(void)
 	{
 		releaseStuck();
 	}
-
-	//if (currentReleased & kButtonB)
-	//{
-	//	spawnPuft(80.f, 80.f);
-	//	buttonPressed = true;
-	//}
 	
+	// Slowdown paddle speed after release the button press
 	if (!buttonPressed)
 	{
 		PADDLE_setDx(state->paddle, PADDLE_getDx(state->paddle) / 1.3f);
+		PADDLE_setSpeedWind(state->paddle, 0);
+	}
+	else
+	{
+		PADDLE_setSpeedWind(state->paddle, PADDLE_getSpeedWind(state->paddle) + 1);
 	}
 }
 
@@ -316,6 +316,7 @@ unsigned int GAMESTATE_update(float deltaTime)
 	}
 
     GAMESTATE_processInput();
+
 
     // Check if ball still alive
 	if (BALL_isDead(state->ball))

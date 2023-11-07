@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "memory.h"
+#include "particles.h"
 #include "resourcemanager.h"
 #include "utils.h"
 
@@ -12,6 +13,8 @@ struct PaddleData
 	float dx;
 	int timerReduce;
 	int timerExpand;
+
+	int speedWind;
 };
 
 LCDSprite* PADDLE_create(float x, float y)
@@ -45,6 +48,7 @@ LCDSprite* PADDLE_create(float x, float y)
 	// Initialize paddle data
 	PaddleData* paddle_data = pd_malloc(sizeof(PaddleData));
 	paddle_data->dx = 0.f;
+	paddle_data->speedWind = 0;
 	pd->sprite->setUserdata(paddle, (void*)paddle_data);
 
 	return paddle;
@@ -90,8 +94,27 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 			int len = 0;
 			//SpriteCollisionInfo* collisions = NULL;
 			//collisions = pd->sprite->moveWithCollisions(sprite, pad_x + paddle_data->dx, pad_y, &actual_x, &actual_y, &len);
+			float oldPad_x = pad_x;
 			pd->sprite->moveTo(sprite, mid((pad_rect.width * 0.5f), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width * 0.5f))), pad_y);
 
+			pd->sprite->getPosition(sprite, &pad_x, &pad_y);
+
+			if(!areEqual(pad_x, oldPad_x))
+			{
+				paddle_data->speedWind = 0;
+			}
+
+			if(paddle_data->speedWind > 5)
+			{
+				if(paddle_data->dx < 0.0f)
+				{
+					PARTICLES_spawnSpeedLines(sprite, pad_x + (pad_rect.width * 0.5f), pad_y);
+				}
+				else
+				{
+					PARTICLES_spawnSpeedLines(sprite, pad_x - ((pad_rect.width * 0.5f) + 2.5f), pad_y);
+				}
+			}
 			//if (len != 0) 
 			//{
 			//	if (pd->sprite->getTag(collisions[0].other) == BALL) 
@@ -195,6 +218,31 @@ int PADDLE_getTimerReduce(LCDSprite* sprite)
 		if (paddle_data)
 		{
 			return paddle_data->timerReduce;
+		}
+	}
+	return 0.f;
+}
+
+void PADDLE_setSpeedWind(LCDSprite* sprite, int value)
+{
+	if (sprite)
+	{
+		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (paddle_data)
+		{
+			paddle_data->speedWind = value;
+		}
+	}
+}
+
+int PADDLE_getSpeedWind(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (paddle_data)
+		{
+			return paddle_data->speedWind;
 		}
 	}
 	return 0.f;
