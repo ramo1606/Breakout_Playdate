@@ -41,6 +41,8 @@ typedef struct
 
 	bool sticky;
 
+	int scoreMul;
+
 	//Particles: move to particle files
 	float lastHitDX;
 	float lastHitDY;
@@ -107,6 +109,8 @@ void serveBall(void)
 	BALL_setDy(state->ball, -1.f);
 	BALL_setAngle(state->ball, 1.f);
 	BALL_setStuck(state->ball, true);
+
+	state->scoreMul = 1;
 }
 
 void releaseStuck(void) 
@@ -302,6 +306,15 @@ unsigned int GAMESTATE_update(float deltaTime)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
     
+	if (PADDLE_getTimerReduce(state->paddle) > 0) 
+	{
+		state->scoreMul = 2;
+	}
+	else 
+	{
+		state->scoreMul = 1;
+	}
+
     GAMESTATE_processInput();
 
     // Check if ball still alive

@@ -16,6 +16,10 @@ void PADDLE_updateSprite(LCDSprite* sprite);
 
 void PADDLE_setDx(LCDSprite* sprite, float value);
 float PADDLE_getDx(LCDSprite* sprite);
+int PADDLE_getTimerExtend(LCDSprite* sprite);
+int PADDLE_getTimerReduce(LCDSprite* sprite);
+
+void PADDLE_reset(LCDSprite* sprite);
 
 SpriteCollisionResponseType PADDLE_collisionResponse(LCDSprite* sprite, LCDSprite* other);
 

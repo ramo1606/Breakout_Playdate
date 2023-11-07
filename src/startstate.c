@@ -7,13 +7,20 @@
 #include "particles.h"
 #include "utils.h"
 #include "memory.h"
+#include "common.h"
 
 #include <stdbool.h>
 
 typedef struct
 {
+    // High Score
+    
+    // Particles
     uint64_t particlesTimer;
     uint64_t particleRow;
+
+    int startCountdown;
+
     EMode nextState;
 } StartState;
 
@@ -101,9 +108,26 @@ void STARTSTATE_processInput(void)
 
 	if (current & kButtonA && !buttonPressed) 
 	{
-        TRANSITION_MANAGER_fadeIn(GAME);
+        state->startCountdown = 80;
+        //blinkSpeed = 1;
+
         buttonPressed = true;
 	}
+
+    if (((current & kButtonDown) || (current & kButtonUp)) && !buttonPressed)
+    {
+        //Fast Mode
+    }
+
+    if (current & kButtonRight && !buttonPressed)
+    {
+        // Show HighScore
+    }
+
+    if (current & kButtonLeft && !buttonPressed)
+    {
+        // Hide HighScore
+    }
 }
 
 EMode STARTSTATE_getNextState(void)
@@ -119,9 +143,15 @@ unsigned int STARTSTATE_init(void)
     state = pd_malloc(sizeof(StartState));
     
     state->nextState = START;
+    
+    // Init Particles
     state->particlesTimer = 0;
     state->particleRow = 0;
 
+    // Init countdown
+    state->startCountdown = -1;
+
+    // Start particles in the background
     startBackgroundParticles();
 
     return 0;
@@ -133,12 +163,28 @@ unsigned int STARTSTATE_update(float deltaTime)
 
     // Raining particles
     state->particlesTimer += 1;
-
     spawnBackgroundParticles(true, state->particlesTimer);
-
-    STARTSTATE_processInput();
-
     PARTICLES_update();
+
+    // HighScore
+
+    if (state->startCountdown < 0)
+    {
+        // Inputs
+        STARTSTATE_processInput();
+    }
+    else 
+    {
+        state->startCountdown -= 1;
+
+        if (state->startCountdown <= 0) 
+        {
+            state->startCountdown = -1;
+            //blinkspeed = 8;
+
+            TRANSITION_MANAGER_fadeIn(GAME);
+        }
+    }
 
     return 0;
 }
@@ -148,14 +194,12 @@ unsigned int STARTSTATE_draw(float deltaTime)
     PlaydateAPI* pd = getPlaydateAPI();
     pd->graphics->setBackgroundColor(kColorClear);
 
+    // Particles
     PARTICLES_draw();
-    //pd->sprite->updateAndDrawSprites();
 
-
-    //int x = (400 - TEXT_WIDTH) / 2;
-	//int y = (240 - TEXT_HEIGHT) / 2;
-	//getPlaydateAPI()->graphics->setFont(font);
-	//getPlaydateAPI()->graphics->drawText("START!", strlen("START!"), kASCIIEncoding, x, y);
+    // Draw Logo
+    int textWidth = pd->graphics->getTextWidth(font, "Press A to start", 17, kASCIIEncoding, pd->graphics->getTextTracking());
+    pd->graphics->drawText("Press A to start", 17, kASCIIEncoding, 200 - (textWidth * 0.5f), 160);
 
     return 0;
 }

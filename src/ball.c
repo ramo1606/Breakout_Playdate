@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-static const int MAX_COLLISIONS_COUNT = 600;
+static const float MAX_COLLISIONS_COUNT = 600.0f;
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 2.5f;
@@ -29,7 +29,9 @@ struct BallData
 	bool dead;
 	bool rammed;
 	int collisionCount;
-	int infiniteCounter;
+	int timerSlow;
+	int timerMega;
+	float infiniteCounter;
 	ESpriteType lastCollision;
 };
 
@@ -86,7 +88,8 @@ LCDSprite* BALL_create(float x, float y)
 	ballData->dead = false;
 	ballData->rammed = false;
 	ballData->collisionCount = 0;
-	ballData->infiniteCounter = 0;
+	ballData->infiniteCounter = 0.0f;
+	ballData->timerSlow = 0;
 	ballData->lastCollision = NONE;
 	pd->sprite->setUserdata(ball, (void*)ballData);
 	return ball;
@@ -119,6 +122,15 @@ void BALL_updateSprite(LCDSprite* sprite)
 		PlaydateAPI* pd = getPlaydateAPI();
 		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 		PDRect ball_bounds = pd->sprite->getBounds(sprite);
+
+		if (ballData->timerSlow > 0) 
+		{
+			ballData->infiniteCounter += 0.5f;
+		}
+		else 
+		{
+			ballData->infiniteCounter += 1.0f;
+		}
 
 		if(BALL_isStuck(sprite))
 		{
@@ -320,6 +332,25 @@ void BALL_setRammed(LCDSprite* sprite, bool rammed)
 			ballData->rammed = rammed;
 		}
 	}
+}
+
+void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value)
+{
+	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	if (ballData)
+	{
+		ballData->infiniteCounter += value;
+	}
+}
+
+float BALL_infiniteCounter(LCDSprite* sprite)
+{
+	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	return ballData->infiniteCounter;
+}
+
+void BALL_resetBall(LCDSprite* sprite)
+{
 }
 
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y)

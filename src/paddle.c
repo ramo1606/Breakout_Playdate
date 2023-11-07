@@ -10,6 +10,8 @@
 struct PaddleData
 {
 	float dx;
+	int timerReduce;
+	int timerExpand;
 };
 
 LCDSprite* PADDLE_create(float x, float y)
@@ -64,7 +66,18 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddle_data)
 		{
-			//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
+			if (paddle_data->timerExpand > 0) 
+			{
+				// TODO: expand pad
+			}
+			else if (paddle_data->timerReduce > 0)
+			{
+				//TODO: reduce pad
+			}
+			else 
+			{
+				//TODO: original size pad
+			}
 			
 			float pad_x = 0;
 			float pad_y = 0;
@@ -156,6 +169,32 @@ float PADDLE_getDx(LCDSprite* sprite)
 		if (paddle_data)
 		{
 			return paddle_data->dx;
+		}
+	}
+	return 0.f;
+}
+
+int PADDLE_getTimerExtend(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (paddle_data)
+		{
+			return paddle_data->timerExpand;
+		}
+	}
+	return 0.f;
+}
+
+int PADDLE_getTimerReduce(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (paddle_data)
+		{
+			return paddle_data->timerReduce;
 		}
 	}
 	return 0.f;

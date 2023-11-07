@@ -21,6 +21,10 @@ bool BALL_isDead(LCDSprite* sprite);
 void BALL_setAngle(LCDSprite* sprite, float angle);
 bool BALL_rammed(LCDSprite* sprite);
 void BALL_setRammed(LCDSprite* sprite, bool rammed);
+void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value);
+float BALL_infiniteCounter(LCDSprite* sprite);
+
+void BALL_resetBall(LCDSprite* sprite);
 
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y);
 
