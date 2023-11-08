@@ -3,6 +3,7 @@
 #include "common.h"
 #include "utils.h"
 #include "patterns.h"
+#include "paddle.h"
 #include "rmem.h"
 #include "resourcemanager.h"
 
@@ -45,8 +46,8 @@ void PARTICLES_update(void)
 		Particle* particle = da_get(particles, i - 1);
 		particle->age += 1;
 		if ((particle->age > particle->maxAge) ||
-			(particle->x < -20 || particle->x > pd->display->getWidth() + 20) ||
-			(particle->y < -20 || particle->y > pd->display->getHeight() + 20))
+			(particle->x < -20.0f || particle->x > pd->display->getWidth() + 20.0f) ||
+			(particle->y < -20.0f || particle->y > pd->display->getHeight() + 20.0f))
 		{
 			PARTICLES_removeParticle(i - 1);
 		}
@@ -210,7 +211,7 @@ void PARTICLES_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
 		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
 
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 2.f + randomFloat(0.0f, 4.0f));
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
 	}
 }
 

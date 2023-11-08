@@ -99,10 +99,10 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 
 			pd->sprite->getPosition(sprite, &pad_x, &pad_y);
 
-			if(!areEqual(pad_x, oldPad_x))
-			{
-				paddle_data->speedWind = 0;
-			}
+			//if(!areEqual(pad_x, oldPad_x))
+			//{
+			//	paddle_data->speedWind = 0;
+			//}
 
 			if(paddle_data->speedWind > 5)
 			{
@@ -112,7 +112,7 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 				}
 				else
 				{
-					PARTICLES_spawnSpeedLines(sprite, pad_x - ((pad_rect.width * 0.5f) + 2.5f), pad_y);
+					PARTICLES_spawnSpeedLines(sprite, pad_x - (pad_rect.width * 0.5f), pad_y);
 				}
 			}
 			//if (len != 0) 
