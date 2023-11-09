@@ -9,6 +9,7 @@
 #include "gamestate.h"
 #include "brick.h"
 #include "paddle.h"
+#include "patterns.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -182,7 +183,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 
 			// TODO: Process mega ball collision
 			// TODO: Trail particles
-			PARTICLES_spawnTrail(x, y, ball_bounds.width * 0.5f);
+			BALL_spawnTrail(x, y, ball_bounds.width * 0.5f);
 			// TODO: Process screen boundaries collision
 			// TODO: process ball is stuck
 		}
@@ -376,7 +377,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			BALL_reflect(ballData, collision->normal);
 			checkInfinite(sprite);
 			
-			PARTICLES_spawnPuft(x, y);
+			BALL_spawnPuft(x, y);
 			//TODO: sound effect
 		}
 	}
@@ -401,7 +402,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			if (y + (ballRect.height * 0.5f) > pad_y - (padRect.height * 0.5f) + 3)
 			{
 				ballData->rammed = true;
-				PARTICLES_spawnPuft(x, y);
+				BALL_spawnPuft(x, y);
 			}
 			else
 			{
@@ -467,7 +468,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			//}
 		}
 
-		PARTICLES_spawnPuft(x, y);
+		BALL_spawnPuft(x, y);
 		//TODO:  puft and sound
 	}
 
@@ -491,9 +492,32 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		// TODO: HitBrick
 		if (BRICK_getType(collision->other) == INVINCIBLE)
 		{
-			PARTICLES_spawnPuft(x, y);
+			BALL_spawnPuft(x, y);
 		}
 		pd->sprite->removeSprite(collision->other);
 		BRICK_destroy(collision->other);
+	}
+}
+
+void BALL_spawnTrail(float x, float y, float radius)
+{
+	if (randomFloat(0.0f, 1.0f) < 0.8f)
+	{
+		float ang = randomFloat(0.0f, 1.0f);
+		float ox = (float)sin(ang) * radius * 0.3f;
+		float oy = (float)cos(ang) * radius * 0.3f;
+
+		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), ditheringPatterns[13], 0.0f);
+	}
+}
+
+void BALL_spawnPuft(float x, float y)
+{
+	for (int i = 0; i < 5; i++)
+	{
+		float ang = randomFloat(0.0f, 1.0f);
+		float dx = (float)sin(ang) * 6.0f;
+		float dy = (float)cos(ang) * 6.0f;
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, randomFloat(4.0f, 20.0f), ditheringPatterns[6], 6 + randomFloat(0.0f, 8.0f));
 	}
 }

@@ -7,6 +7,7 @@
 
 #include "particles.h"
 #include "patterns.h"
+#include "DG_dynarr.h"
 
 #include "level.h"
 #include "paddle.h"
@@ -16,6 +17,8 @@
 #include <stdbool.h>
 
 #define MAX_BALLS 3
+
+DA_TYPEDEF(LCDSprite*, BricksArrayType);
 
 typedef struct 
 {
@@ -30,7 +33,7 @@ typedef struct
     // Game objects
 	LCDSprite* paddle;
 	LCDSprite* ball;
-	LCDSprite** bricks;
+	BricksArrayType bricks;
 
 	Walls walls;
 
@@ -42,6 +45,9 @@ typedef struct
 	bool sticky;
 
 	int scoreMul;
+
+	int gameOverCountdown;
+	int blinkSpeed;
 
 	//Particles: move to particle files
 	float lastHitDX;
@@ -130,7 +136,7 @@ void releaseStuck(void)
 void loadLevelBricks(void)
 {
 	char* currentLevel = LEVEL_get(state->currentLevel);
-	state->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(currentLevel));
+	//state->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(currentLevel));
 
 	// b = normal brick
 	// x = empty space
@@ -156,7 +162,8 @@ void loadLevelBricks(void)
 			currentBrick == 's' ||
 			currentBrick == 'p') 
 		{
-			state->bricks[index] = BRICK_create(gridPos, currentBrick);
+			da_push(state->bricks, BRICK_create(gridPos, currentBrick));
+			//state->bricks[index] = BRICK_create(gridPos, currentBrick);
 			lastBrick = currentBrick;
 		}
 		else if (currentBrick == 'x') 
@@ -178,7 +185,8 @@ void loadLevelBricks(void)
 					lastBrick == 's' ||
 					lastBrick == 'p') 
 				{
-					state->bricks[index] = BRICK_create(gridPos, lastBrick);
+					da_push(state->bricks, BRICK_create(gridPos, lastBrick));
+					//state->bricks[index] = BRICK_create(gridPos, lastBrick);
 				}
 				gridPos += 1;
 			}
@@ -191,16 +199,16 @@ bool levelFinished()
 {
 	bool returnValue = false;
 
-	int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
-	if (bricksSize == 0)
+	//int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
+	if (da_count(state->bricks) == 0)
 	{
 		return true;
 	}
 
 	// checks if there is any invincible brick
-	for (int i = 0; i < bricksSize; i++)
+	for (int i = 0; i < da_count(state->bricks); i++)
 	{
-		if(/*state->bricks[i].v == true*/BRICK_getType(state->bricks[i]) != INVINCIBLE) return false;
+		if(/*state->bricks[i].v == true*/BRICK_getType(da_get(state->bricks, i)) != INVINCIBLE) return false;
 	}
 
 	return true;
@@ -227,6 +235,7 @@ void restartLevel()
 	// Create walls, ball and bricks
 	getPlaydateAPI()->sprite->moveTo(state->paddle, PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
     createWalls();
+	da_init(state->bricks);
 	loadLevelBricks();
 	serveBall();
 }
@@ -240,6 +249,29 @@ void startGame()
 	state->paddle = PADDLE_create(PADDLE_INITIAL_X_POS, PADDLE_INITIAL_Y_POS);
 
 	restartLevel();
+}
+
+void winGame() 
+{
+	state->nextState = WINNER_WAIT;
+	state->gameOverCountdown = 60;
+	state->blinkSpeed = 16;
+
+	//Manage HighScore
+}
+
+void gameOver()
+{
+	state->nextState = GAME_OVER_WAIT;
+	state->gameOverCountdown = 60;
+	state->blinkSpeed = 16;
+}
+
+void levelOver() 
+{
+	state->nextState = LEVEL_OVER_WAIT;
+	state->gameOverCountdown = 60;
+	state->blinkSpeed = 16;
 }
 
 void GAMESTATE_processInput(void)
@@ -317,6 +349,25 @@ unsigned int GAMESTATE_update(float deltaTime)
 
     GAMESTATE_processInput();
 
+	//Move Pills
+	//Update Sudden Death
+	//Check Explosion
+
+	if (levelFinished()) 
+	{
+		//GAMESTATE_draw();
+		if (state->currentLevel >= LEVEL_getAmount()) 
+		{
+			winGame();
+		}
+		else 
+		{
+			levelOver();
+		}
+	}
+
+	// Powerup Timers
+	
 
     // Check if ball still alive
 	if (BALL_isDead(state->ball))
@@ -375,6 +426,8 @@ unsigned int GAMESTATE_destroy(void)
 
 	PADDLE_destroy(state->paddle);
 	BALL_destroy(state->ball);
+
+	da_free(state->bricks);
 
     pd_free(state);
     state = NULL;

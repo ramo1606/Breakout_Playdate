@@ -17,6 +17,24 @@ struct PaddleData
 	int speedWind;
 };
 
+void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	if (randomFloat(0.0f, 1.0f) < 0.2f)
+	{
+		PDRect pad_bounds = pd->sprite->getBounds(sprite);
+		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
+		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
+
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
+	}
+}
+
+void PADDLE_reset(LCDSprite* sprite)
+{
+}
+
 LCDSprite* PADDLE_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
@@ -108,11 +126,11 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 			{
 				if(paddle_data->dx < 0.0f)
 				{
-					PARTICLES_spawnSpeedLines(sprite, pad_x + (pad_rect.width * 0.5f), pad_y);
+					PADDLE_spawnSpeedLines(sprite, pad_x + (pad_rect.width * 0.5f), pad_y);
 				}
 				else
 				{
-					PARTICLES_spawnSpeedLines(sprite, pad_x - (pad_rect.width * 0.5f), pad_y);
+					PADDLE_spawnSpeedLines(sprite, pad_x - (pad_rect.width * 0.5f), pad_y);
 				}
 			}
 			//if (len != 0) 

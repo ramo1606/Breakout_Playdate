@@ -22,6 +22,46 @@ struct BrickData
 	int fsh;
 };
 
+void animate(LCDSprite* sprite)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
+	
+	if (brickData->v || brickData->fsh > 0)
+	{
+		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
+		{
+			brickData->ox += brickData->dx;
+			brickData->oy += brickData->dy;
+
+			brickData->dx -= brickData->ox / 10.f;
+			brickData->dy -= brickData->oy / 10.f;
+
+			if (abs(brickData->dx) > brickData->ox) 
+			{
+				brickData->dx = brickData->dx / 1.3f;
+			}
+
+			if (abs(brickData->dy) > brickData->oy)
+			{
+				brickData->dy = brickData->dy / 1.3f;
+			}
+
+			if (abs(brickData->ox) < 0.2f && abs(brickData->dx) < 0.25f)
+			{
+				brickData->ox = 0.0f;
+				brickData->dx = 0.0f;
+			}
+
+			if (abs(brickData->oy) < 0.2f && abs(brickData->dy) < 0.25f)
+			{
+				brickData->oy = 0.0f;
+				brickData->dy = 0.0f;
+			}
+		}
+	}
+}
+
 LCDSprite* BRICK_create(int gridPos, char type)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
@@ -89,6 +129,8 @@ void BRICK_updateSprite(LCDSprite* sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
 
+
+		animate(sprite);
 		//float x = 0;
 		//float y = 0;
 		//pd->sprite->getPosition(sprite, &x, &y);

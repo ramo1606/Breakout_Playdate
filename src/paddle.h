@@ -21,6 +21,8 @@ int PADDLE_getTimerReduce(LCDSprite* sprite);
 void PADDLE_setSpeedWind(LCDSprite* sprite, int value);
 int PADDLE_getSpeedWind(LCDSprite* sprite);
 
+void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y);
+
 void PADDLE_reset(LCDSprite* sprite);
 
 SpriteCollisionResponseType PADDLE_collisionResponse(LCDSprite* sprite, LCDSprite* other);

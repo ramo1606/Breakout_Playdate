@@ -24,6 +24,9 @@ void BALL_setRammed(LCDSprite* sprite, bool rammed);
 void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value);
 float BALL_infiniteCounter(LCDSprite* sprite);
 
+void BALL_spawnTrail(float x, float y, float radius);
+void BALL_spawnPuft(float x, float y);
+
 void BALL_resetBall(LCDSprite* sprite);
 
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y);

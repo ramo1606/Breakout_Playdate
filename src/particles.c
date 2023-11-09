@@ -3,7 +3,6 @@
 #include "common.h"
 #include "utils.h"
 #include "patterns.h"
-#include "paddle.h"
 #include "rmem.h"
 #include "resourcemanager.h"
 
@@ -198,42 +197,5 @@ void PARTICLES_removeAllParticles(void)
 	for (int i = 0; i < da_count(particles); i++)
 	{
 		PARTICLES_removeParticle(i);
-	}
-}
-
-void PARTICLES_spawnSpeedLines(LCDSprite* sprite, float x, float y)
-{
-	PlaydateAPI* pd = getPlaydateAPI();
-
-	if (randomFloat(0.0f, 1.0f) < 0.2f)
-	{
-		PDRect pad_bounds = pd->sprite->getBounds(sprite);
-		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
-		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
-
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
-	}
-}
-
-void PARTICLES_spawnTrail(float x, float y, float radius)
-{
-	if(randomFloat(0.0f, 1.0f) < 0.8f)
-	{
-		float ang = randomFloat(0.0f, 1.0f);
-		float ox = (float)sin(ang) * radius * 0.3f;
-		float oy = (float)cos(ang) * radius * 0.3f;
-
-		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), ditheringPatterns[13], 0.0f);
-	}
-}
-
-void PARTICLES_spawnPuft(float x, float y)
-{
-	for (int i = 0; i < 5; i++)
-	{
-		float ang = randomFloat(0.0f, 1.0f);
-		float dx = (float)sin(ang) * 6.0f;
-		float dy = (float)cos(ang) * 6.0f;
-		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, randomFloat(4.0f, 20.0f), ditheringPatterns[6], 6 + randomFloat(0.0f, 8.0f));
 	}
 }
