@@ -1,5 +1,6 @@
 #include "brick.h"
 #include "memory.h"
+#include "rmem.h"
 #include "utils.h"
 #include "resourcemanager.h"
 
@@ -12,7 +13,7 @@ static const float BRICK_HP = 1.f;
 
 struct BrickData
 {
-	bool v;
+	bool visible;
 	float dx;
 	float dy;
 	float hp;
@@ -27,7 +28,7 @@ void animate(LCDSprite* sprite)
 	PlaydateAPI* pd = getPlaydateAPI();
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 	
-	if (brickData->v || brickData->fsh > 0)
+	if (brickData->visible || brickData->fsh > 0)
 	{
 		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
 		{
@@ -100,7 +101,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 
 	// Initialize paddle data
 	BrickData* brickData = pd_malloc(sizeof(BrickData));
-	brickData->v = true;
+	brickData->visible = true;
 	brickData->dx = 0.f;
 	brickData->dy = randomFloat(0.f, 64.f);
 	brickData->type = BRICK_translateType(type);
@@ -128,7 +129,6 @@ void BRICK_updateSprite(LCDSprite* sprite)
 	if (sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
-
 
 		animate(sprite);
 		//float x = 0;
