@@ -21,8 +21,12 @@ bool BALL_isDead(LCDSprite* sprite);
 void BALL_setAngle(LCDSprite* sprite, float angle);
 bool BALL_rammed(LCDSprite* sprite);
 void BALL_setRammed(LCDSprite* sprite, bool rammed);
+void BALL_resetInfiniteCounter(LCDSprite* sprite);
 void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value);
 float BALL_infiniteCounter(LCDSprite* sprite);
+int BALL_getMegaballTimer(LCDSprite* sprite);
+float BALL_getLastHitDx(LCDSprite* sprite);
+float BALL_getLastHitDy(LCDSprite* sprite);
 
 void BALL_spawnTrail(float x, float y, float radius);
 void BALL_spawnPuft(float x, float y);

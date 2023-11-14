@@ -24,12 +24,15 @@ struct BallData
 {
 	float dx;
 	float dy;
+	float lastHitDx;
+	float lastHitDy;
 	float speed;
 	float angle;
 	bool stuck;
 	bool dead;
 	bool rammed;
 	int collisionCount;
+	int chain;
 	int timerSlow;
 	int timerMega;
 	float infiniteCounter;
@@ -83,11 +86,14 @@ LCDSprite* BALL_create(float x, float y)
 	BallData* ballData = pd_malloc(sizeof(BallData));
 	ballData->dx = BALL_DX;
 	ballData->dy = BALL_DY;
+	ballData->lastHitDx = BALL_DX;
+	ballData->lastHitDy = BALL_DY;
 	ballData->speed = BALL_SPEED;
 	ballData->angle = BALL_ANGLE;
 	ballData->stuck = false;
 	ballData->dead = false;
 	ballData->rammed = false;
+	ballData->chain = 1;
 	ballData->collisionCount = 0;
 	ballData->infiniteCounter = 0.0f;
 	ballData->timerSlow = 0;
@@ -150,9 +156,14 @@ void BALL_updateSprite(LCDSprite* sprite)
 			float y = 0;
 			pd->sprite->getPosition(sprite, &x, &y);
 
-			//TODO: add time slow case
-			float nextx = x + ballData->dx * ballData->speed;
-			float nexty = y + ballData->dy * ballData->speed;
+			float speedModifier = 1.0f;
+			if (ballData->timerSlow > 0)
+			{
+				speedModifier = 0.5f;
+			}
+
+			float nextx = x + (ballData->dx * speedModifier * ballData->speed);
+			float nexty = y + (ballData->dy * speedModifier * ballData->speed);
 
 			PDRect ball_rect = pd->sprite->getCollideRect(sprite);
 
@@ -162,6 +173,9 @@ void BALL_updateSprite(LCDSprite* sprite)
 			float actual_y = 0;
 			SpriteCollisionInfo* collisions = NULL;
 			collisions = pd->sprite->moveWithCollisions(sprite, nextx, nexty, &actual_x, &actual_y, &len);
+
+			ballData->lastHitDx = ballData->dx;
+			ballData->lastHitDy = ballData->dy;
 
 			// check if there is any collision
 			if (len > 0	)
@@ -177,7 +191,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 						nearestCollision = i;
 					}
 				}
-
+				
 				BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
 			}
 
@@ -335,19 +349,76 @@ void BALL_setRammed(LCDSprite* sprite, bool rammed)
 	}
 }
 
+void BALL_resetInfiniteCounter(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			ballData->infiniteCounter = 0;
+		}
+	}
+}
+
 void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value)
 {
-	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-	if (ballData)
+	if (sprite)
 	{
-		ballData->infiniteCounter += value;
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			ballData->infiniteCounter += value;
+		}
 	}
 }
 
 float BALL_infiniteCounter(LCDSprite* sprite)
 {
-	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-	return ballData->infiniteCounter;
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			return ballData->infiniteCounter;
+		}
+	}
+}
+
+int BALL_getMegaballTimer(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			return ballData->timerMega;
+		}
+	}
+}
+
+float BALL_getLastHitDx(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			return ballData->lastHitDx;
+		}
+	}
+}
+
+float BALL_getLastHitDy(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			return ballData->lastHitDy;
+		}
+	}
 }
 
 void BALL_resetBall(LCDSprite* sprite)
@@ -394,8 +465,10 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		bool bend = false;
 		bool angf = false;
 		ballData->infiniteCounter = 0;
-		//TODO: reset chain
-		//TODO: check suden death
+		ballData->chain = 1;
+		
+		GAMESTATE_checkSD();
+
 		if (collision->normal.x != 0)
 		{
 			// TODO: check pixel perfect when having the new assets
@@ -488,14 +561,17 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		}
 		BALL_reflect(ballData, collision->normal);
 		checkInfinite(sprite);
+		GAMESTATE_hitBrick(collision, true);
 
-		// TODO: HitBrick
 		if (BRICK_getType(collision->other) == INVINCIBLE)
 		{
 			BALL_spawnPuft(x, y);
 		}
-		pd->sprite->removeSprite(collision->other);
-		BRICK_destroy(collision->other);
+		else 
+		{
+			pd->sprite->removeSprite(collision->other);
+			BRICK_destroy(collision->other);
+		}
 	}
 }
 

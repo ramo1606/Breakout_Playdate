@@ -9,18 +9,18 @@
 #define BRICK_WIDTH_SPACE_OFFSET 6
 #define BRICK_HEIGHT_SPACE_OFFSET 4
 
-static const float BRICK_HP = 1.f;
+static const int BRICK_HP = 1;
 
 struct BrickData
 {
 	bool visible;
 	float dx;
 	float dy;
-	float hp;
+	int hp;
 	EBrickType type;
 	int ox;
 	int oy;
-	int fsh;
+	int flash;
 };
 
 void animate(LCDSprite* sprite)
@@ -28,7 +28,7 @@ void animate(LCDSprite* sprite)
 	PlaydateAPI* pd = getPlaydateAPI();
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 	
-	if (brickData->visible || brickData->fsh > 0)
+	if (brickData->visible || brickData->flash > 0)
 	{
 		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
 		{
@@ -108,7 +108,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	brickData->hp = (brickData->type == HARDENED) ? BRICK_HP * 2 : BRICK_HP;
 	brickData->ox = 0;
 	brickData->oy = 128+randomInt(0, 128);
-	brickData->fsh = 0;
+	brickData->flash = 0;
 	pd->sprite->setUserdata(brick, (void*)brickData);
 
 	// Remove temporary string
@@ -119,8 +119,8 @@ LCDSprite* BRICK_create(int gridPos, char type)
 void BRICK_destroy(LCDSprite* sprite)
 {
 	getPlaydateAPI()->sprite->removeSprite(sprite);
-	BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-	pd_free(brick_data);
+	BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd_free(brickData);
 	pd_free(sprite);
 }
 
@@ -163,10 +163,10 @@ void BRICK_setDx(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brick_data)
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
 		{
-			brick_data->dx = value;
+			brickData->dx = value;
 		}
 	}
 }
@@ -175,10 +175,10 @@ float BRICK_getDx(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brick_data)
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
 		{
-			return brick_data->dx;
+			return brickData->dx;
 		}
 	}
 }
@@ -187,10 +187,10 @@ void BRICK_setDy(LCDSprite* sprite, float value)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brick_data)
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
 		{
-			brick_data->dx = value;
+			brickData->dx = value;
 		}
 	}
 }
@@ -199,10 +199,10 @@ float BRICK_getDy(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brick_data)
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
 		{
-			return brick_data->dx;
+			return brickData->dx;
 		}
 	}
 }
@@ -211,10 +211,70 @@ EBrickType BRICK_getType(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BrickData* brick_data = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brick_data)
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
 		{
-			return brick_data->type;
+			return brickData->type;
+		}
+	}
+}
+
+void BRICK_setType(LCDSprite* sprite, EBrickType newType)
+{
+	if (sprite)
+	{
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
+		{
+			brickData->type = newType;
+		}
+	}
+}
+
+void BRICK_setFlash(LCDSprite* sprite, int flashTime)
+{
+	if (sprite) 
+	{
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
+		{
+			brickData->flash = flashTime;
+		}
+	}
+}
+
+void BRICK_setVisible(LCDSprite* sprite, bool visible)
+{
+	if (sprite)
+	{
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
+		{
+			brickData->visible = visible;
+		}
+	}
+}
+
+void BRICK_decreaseHP(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
+		{
+			brickData->hp -= 1;
+		}
+	}
+}
+
+int BRICK_getHP(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (brickData)
+		{
+			return brickData->hp;
 		}
 	}
 }

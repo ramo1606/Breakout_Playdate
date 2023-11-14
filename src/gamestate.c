@@ -34,6 +34,7 @@ typedef struct
 	LCDSprite* paddle;
 	LCDSprite* ball;
 	BricksArrayType bricks;
+	LCDSprite* suddenDeathBrick;
 
 	Walls walls;
 
@@ -48,10 +49,6 @@ typedef struct
 
 	int gameOverCountdown;
 	int blinkSpeed;
-
-	//Particles: move to particle files
-	float lastHitDX;
-	float lastHitDY;
 } GameState;
 
 static GameState* state = NULL;
@@ -444,4 +441,113 @@ LCDSprite* GAMESTATE_getPaddle(void)
 LCDSprite* GAMESTATE_getBall(void)
 {
 	return state->ball;
+}
+
+void GAMESTATE_checkSD(void)
+{
+
+}
+
+void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
+{
+	if (collision)
+	{
+		int flashTime = 10;
+		if (BRICK_getType(collision->other) == SPLODING || collision->other == state->suddenDeathBrick)
+		{
+			//BALL_megaBallSmash();
+			BALL_resetInfiniteCounter(collision->sprite);
+
+			// Splosion brick
+			// TODO: sfx(2 + chain);
+			// TODO: BRICK_shatter();
+			BRICK_setType(collision->other, ZZ);
+
+			if (collision->other == state->suddenDeathBrick) 
+			{
+				//TODO: getPoints(10);
+				state->suddenDeathBrick = NULL;
+			}
+			else 
+			{
+				//TODO: getPoints(1);
+			}
+
+			if (combo) 
+			{
+				//TODO: boostChain();
+			}
+		}
+		else if (BRICK_getType(collision->other) == REGULAR)
+		{
+			//BALL_megaBallSmash();
+			BALL_resetInfiniteCounter(collision->sprite);
+
+			// Regular brick
+			// TODO: sfx(2 + chain);
+			// TODO: BRICK_shatter();
+			BRICK_setFlash(collision->other, flashTime);
+			BRICK_setVisible(collision->other, false);
+
+			if (combo) 
+			{
+				//getPoints(1);
+				//boostChain();
+			}
+		}
+		else if (BRICK_getType(collision->other) == INVINCIBLE)
+		{
+			//sfx();
+		}
+		else if (BRICK_getType(collision->other) == HARDENED) 
+		{
+			//BALL_megaBallSmash();
+			BALL_resetInfiniteCounter(collision->sprite);
+
+			if (BALL_getMegaballTimer(collision->sprite) > 0) 
+			{
+				//sfx();
+				//BRICK_shatter();
+				BRICK_setFlash(collision->other, flashTime);
+				BRICK_setVisible(collision->other, false);
+
+				if (combo)
+				{
+					//getPoints(1);
+					//boostChain();
+				}
+			}
+			else 
+			{
+				//sfx();
+				BRICK_setFlash(collision->other, flashTime);
+				// Bump the brick
+				BRICK_setDx(collision->other, BALL_getLastHitDx(collision->sprite) * 0.25f);
+				BRICK_setDy(collision->other, BALL_getLastHitDy(collision->sprite) * 0.25f);
+
+				BRICK_decreaseHP(collision->other);
+				if (BRICK_getHP(collision->other) <= 0) 
+				{
+					BRICK_setType(collision->other, REGULAR);
+				}
+			}
+		}
+		else if (BRICK_getType(collision->other) == POWER)
+		{
+			//BALL_megaBallSmash();
+			BALL_resetInfiniteCounter(collision->sprite);
+
+			//sfx();
+			//BRICK_shatter();
+			BRICK_setFlash(collision->other, flashTime);
+			BRICK_setVisible(collision->other, false);
+
+			if (combo)
+			{
+				//getPoints(1);
+				//boostChain();
+			}
+			//spawnPill();
+		}
+	}
 }

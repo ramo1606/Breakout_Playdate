@@ -43,13 +43,36 @@ static void RESOURCEMANAGER_loadImage(const char* filename, void* userdata)
 	da_push(images, imageResource);
 }
 
+//static void RESOURCEMANAGER_loadSound(const char* filename, void* userdata)
+//{
+//	// Setup filename path to load
+//	const char* outErr = NULL;
+//	char* file = filename;
+//	char* path = NULL;
+//	file[strlen(filename) - 4] = '\0';
+//	getPlaydateAPI()->system->formatString(&path, "sounds/%s", file);
+//
+//	// Load sounds
+//	LCDBitmap* img = getPlaydateAPI()->graphics->loadBitmap(path, &outErr);
+//	if (outErr != NULL) {
+//		getPlaydateAPI()->system->logToConsole("Error loading image '%s': %s", filename, outErr);
+//	}
+//
+//	pd_free(path);				// free path string
+//
+//	// Create a new image resource with image loaded and name, added to the dynamic arrray
+//	char* name = strdup(file);
+//	Resources imageResource = { .name = name, .res = (void*)img };
+//	da_push(images, imageResource);
+//}
+
 /*  */
 void RESOURCEMANAGER_load(void)
 {
 	// Load all images.
 	da_init(images);
 	int filesNum = getPlaydateAPI()->file->listfiles("images", &RESOURCEMANAGER_loadImage, NULL, 0);
-	//RESOURCEMANAGER_loadSounds(resources);
+	//int filesNum = getPlaydateAPI()->file->listfiles("sounds", &RESOURCEMANAGER_loadSound, NULL, 0);
 	//RESOURCEMANAGER_loadMusic(resources);
 }
 
