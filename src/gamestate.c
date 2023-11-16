@@ -17,6 +17,7 @@
 #include <stdbool.h>
 
 #define MAX_BALLS 3
+#define MAX_SICK 12
 
 DA_TYPEDEF(LCDSprite*, BricksArrayType);
 
@@ -45,13 +46,31 @@ typedef struct
 
 	bool sticky;
 
+	int chain;
 	int scoreMul;
+	int points;
+	int points2;
+	int fastMode;
 
 	int gameOverCountdown;
 	int blinkSpeed;
 } GameState;
 
 static GameState* state = NULL;
+static char* levels[MAX_SICK] = {
+		"so sick!",
+		"yeeee boiii!",
+		"impressive!",
+		"i can't even...",
+		"it's lit!",
+		"mah dude!",
+		"c-c-combo!",
+		"winning!",
+		"niiiice!",
+		"woah!",
+		"seriously now?",
+		"maximum pwnage!"
+};
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -443,9 +462,50 @@ LCDSprite* GAMESTATE_getBall(void)
 	return state->ball;
 }
 
+void GAMESTATE_resetChain()
+{
+	state->chain = 1;
+}
+
 void GAMESTATE_checkSD(void)
 {
 
+}
+
+void boostChain() 
+{
+	if (state->chain == 6) 
+	{
+		int si = randomInt(0, MAX_SICK - 1);
+		//sfx();
+		//showSash();
+	}
+
+	state->chain += 1;
+	state->chain = (int)mid(1.f, (float)state->chain, 7.f);
+}
+
+void getPoints(int points) 
+{
+	if (state->fastMode) 
+	{
+		points = points * 2;
+	}
+
+	if (PADDLE_getTimerReduce(state->paddle) <= 0) 
+	{
+		state->points += points * state->chain * state->scoreMul;
+	}
+	else 
+	{
+		state->points += points * state->chain * state->scoreMul*10;
+	}
+
+	if (state->points > 10000) 
+	{
+		state->points2 += 1;
+		state->points -= 10000;
+	}
 }
 
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)

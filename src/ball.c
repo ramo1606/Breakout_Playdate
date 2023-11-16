@@ -32,9 +32,9 @@ struct BallData
 	bool dead;
 	bool rammed;
 	int collisionCount;
-	int chain;
 	int timerSlow;
 	int timerMega;
+	int timerMegaWait;
 	float infiniteCounter;
 	ESpriteType lastCollision;
 };
@@ -93,7 +93,6 @@ LCDSprite* BALL_create(float x, float y)
 	ballData->stuck = false;
 	ballData->dead = false;
 	ballData->rammed = false;
-	ballData->chain = 1;
 	ballData->collisionCount = 0;
 	ballData->infiniteCounter = 0.0f;
 	ballData->timerSlow = 0;
@@ -425,6 +424,23 @@ void BALL_resetBall(LCDSprite* sprite)
 {
 }
 
+void BALL_megaballSmash(LCDSprite* sprite)
+{
+	if (sprite)
+	{
+		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			if (ballData->timerMegaWait > 0) 
+			{
+				ballData->timerMegaWait = 0;
+				ballData->timerMega = 120;
+			}
+		}
+	}
+}
+
+
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
@@ -465,7 +481,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		bool bend = false;
 		bool angf = false;
 		ballData->infiniteCounter = 0;
-		ballData->chain = 1;
+		GAMESTATE_resetChain();
 		
 		GAMESTATE_checkSD();
 

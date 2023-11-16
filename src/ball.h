@@ -33,6 +33,8 @@ void BALL_spawnPuft(float x, float y);
 
 void BALL_resetBall(LCDSprite* sprite);
 
+void BALL_megaballSmash(LCDSprite* sprite);
+
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y);
 
 SpriteCollisionResponseType BALL_collisionResponse(LCDSprite* sprite, LCDSprite* other);

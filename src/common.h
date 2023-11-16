@@ -32,7 +32,8 @@ typedef enum
 	PADDLE,
 	BALL,
 	BRICK,
-	WALL
+	WALL,
+	PILL
 } ESpriteType;
 
 typedef enum
@@ -45,6 +46,17 @@ typedef enum
 	POWER,
 	ZZ
 } EBrickType;
+
+typedef enum
+{
+	SLOW_DOWN,
+	EXTRA_LIFE,
+	STICKY,
+	EXPAND,
+	REDUCE,
+	MEGABALL,
+	MULTIBALL
+} EPillType;
 
 typedef enum
 {

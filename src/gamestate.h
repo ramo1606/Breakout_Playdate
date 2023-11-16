@@ -14,6 +14,7 @@ unsigned int GAMESTATE_destroy(void);
 
 LCDSprite* GAMESTATE_getPaddle(void);
 LCDSprite* GAMESTATE_getBall(void);
+void GAMESTATE_resetChain();
 
 void GAMESTATE_checkSD(void);
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo);
