@@ -1,8 +1,11 @@
 #include "brick.h"
 #include "memory.h"
 #include "rmem.h"
+#include "raymath.h"
 #include "utils.h"
 #include "resourcemanager.h"
+#include "engine.h"
+#include "easing.h"
 
 #include <stdbool.h>
 
@@ -11,57 +14,62 @@
 
 static const int BRICK_HP = 1;
 
-struct BrickData
-{
-	bool visible;
-	float dx;
-	float dy;
-	int hp;
-	EBrickType type;
-	int ox;
-	int oy;
-	int flash;
-};
-
-void animate(LCDSprite* sprite)
+void animate(LCDSprite* sprite) 
 {
 	PlaydateAPI* pd = getPlaydateAPI();
+
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
-	
-	if (brickData->visible || brickData->flash > 0)
+	if (brickData->animationElapsedTime <= brickData->animationTime)
 	{
-		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
-		{
-			brickData->ox += brickData->dx;
-			brickData->oy += brickData->dy;
+		//float x, y = 0.0f;
+		//pd->sprite->getPosition(sprite, &x, &y);
+		float newY = Lerp(brickData->originalY, brickData->destY, easeOutElastic(brickData->animationElapsedTime / brickData->animationTime));
 
-			brickData->dx -= brickData->ox / 10.f;
-			brickData->dy -= brickData->oy / 10.f;
-
-			if (abs(brickData->dx) > brickData->ox) 
-			{
-				brickData->dx = brickData->dx / 1.3f;
-			}
-
-			if (abs(brickData->dy) > brickData->oy)
-			{
-				brickData->dy = brickData->dy / 1.3f;
-			}
-
-			if (abs(brickData->ox) < 0.2f && abs(brickData->dx) < 0.25f)
-			{
-				brickData->ox = 0.0f;
-				brickData->dx = 0.0f;
-			}
-
-			if (abs(brickData->oy) < 0.2f && abs(brickData->dy) < 0.25f)
-			{
-				brickData->oy = 0.0f;
-				brickData->dy = 0.0f;
-			}
-		}
+		pd->sprite->moveTo(sprite, brickData->originalX, newY);
+		float deltaTime = ENGINE_deltaTime();
+		brickData->animationElapsedTime = brickData->animationElapsedTime + deltaTime;
 	}
 }
+
+//void animate(LCDSprite* sprite)
+//{
+//	PlaydateAPI* pd = getPlaydateAPI();
+//	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
+//	
+//	if (brickData->visible || brickData->flash > 0)
+//	{
+//		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
+//		{
+//			brickData->ox += brickData->dx;
+//			brickData->oy += brickData->dy;
+//
+//			brickData->dx -= brickData->ox / 10.f;
+//			brickData->dy -= brickData->oy / 10.f;
+//
+//			if (abs(brickData->dx) > brickData->ox) 
+//			{
+//				brickData->dx = brickData->dx / 1.3f;
+//			}
+//
+//			if (abs(brickData->dy) > brickData->oy)
+//			{
+//				brickData->dy = brickData->dy / 1.3f;
+//			}
+//
+//			if (abs(brickData->ox) < 0.2f && abs(brickData->dx) < 0.25f)
+//			{
+//				brickData->ox = 0.0f;
+//				brickData->dx = 0.0f;
+//			}
+//
+//			if (abs(brickData->oy) < 0.2f && abs(brickData->dy) < 0.25f)
+//			{
+//				brickData->oy = 0.0f;
+//				brickData->dy = 0.0f;
+//			}
+//		}
+//	}
+//}
 
 LCDSprite* BRICK_create(int gridPos, char type)
 {
@@ -92,8 +100,8 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	pd->sprite->setCollisionResponseFunction(brick, BRICK_collisionResponse);
 
 	// Calculate position
-	float x = 80 + ((gridPos - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
-	float y = 10 + (int)floor((gridPos - 1) / 11) * (h + BRICK_HEIGHT_SPACE_OFFSET);
+	float x = 80.f + ((gridPos - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
+	float y = 0 - h * 0.5f;
 	pd->sprite->moveTo(brick, x, y);
 	pd->sprite->setZIndex(brick, 1000);
 	pd->sprite->setTag(brick, BRICK);
@@ -103,12 +111,16 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	BrickData* brickData = pd_malloc(sizeof(BrickData));
 	brickData->visible = true;
 	brickData->dx = 0.f;
-	brickData->dy = randomFloat(0.f, 64.f);
+	brickData->dy = randomFloat(0.f, 120.f);
 	brickData->type = BRICK_translateType(type);
 	brickData->hp = (brickData->type == HARDENED) ? BRICK_HP * 2 : BRICK_HP;
-	brickData->ox = 0;
-	brickData->oy = 128+randomInt(0, 128);
+	brickData->destX = x;
+	brickData->destY = 10.f + (int)floor((gridPos - 1.f) / 11.f) * (h + BRICK_HEIGHT_SPACE_OFFSET);
 	brickData->flash = 0;
+	brickData->originalX = x;
+	brickData->originalY = y;
+	brickData->animationElapsedTime = 0.0f;
+	brickData->animationTime = randomFloat(1.0f, 1.5f);
 	pd->sprite->setUserdata(brick, (void*)brickData);
 
 	// Remove temporary string
@@ -131,6 +143,8 @@ void BRICK_updateSprite(LCDSprite* sprite)
 		PlaydateAPI* pd = getPlaydateAPI();
 
 		animate(sprite);
+
+		//pd->sprite->moveTo(sprite, x + brickData->ox, y + brickData->oy);
 		//float x = 0;
 		//float y = 0;
 		//pd->sprite->getPosition(sprite, &x, &y);
@@ -159,126 +173,6 @@ void BRICK_updateSprite(LCDSprite* sprite)
 	}
 }
 
-void BRICK_setDx(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->dx = value;
-		}
-	}
-}
-
-float BRICK_getDx(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			return brickData->dx;
-		}
-	}
-}
-
-void BRICK_setDy(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->dx = value;
-		}
-	}
-}
-
-float BRICK_getDy(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			return brickData->dx;
-		}
-	}
-}
-
-EBrickType BRICK_getType(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			return brickData->type;
-		}
-	}
-}
-
-void BRICK_setType(LCDSprite* sprite, EBrickType newType)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->type = newType;
-		}
-	}
-}
-
-void BRICK_setFlash(LCDSprite* sprite, int flashTime)
-{
-	if (sprite) 
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->flash = flashTime;
-		}
-	}
-}
-
-void BRICK_setVisible(LCDSprite* sprite, bool visible)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->visible = visible;
-		}
-	}
-}
-
-void BRICK_decreaseHP(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			brickData->hp -= 1;
-		}
-	}
-}
-
-int BRICK_getHP(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (brickData)
-		{
-			return brickData->hp;
-		}
-	}
-}
-
 EBrickType BRICK_translateType(char type)
 {
 	EBrickType returnType = EMPTY;
@@ -298,5 +192,14 @@ EBrickType BRICK_translateType(char type)
 
 SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
-	return kCollisionTypeBounce;
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	if (pd->sprite->getTag(other) == WALL) 
+	{
+		return kCollisionTypeOverlap;
+	}
+	else 
+	{
+		return kCollisionTypeBounce;
+	}
 }

@@ -5,5 +5,6 @@
 
 void ENGINE_create(PlaydateAPI* p);
 int ENGINE_update(void);
+float ENGINE_deltaTime(void);
 
 #endif

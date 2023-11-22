@@ -8,18 +8,10 @@
 
 #include "ball.h"
 
-struct PaddleData
-{
-	float dx;
-	int timerReduce;
-	int timerExpand;
-
-	int speedWind;
-};
-
 void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
+	PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 
 	if (randomFloat(0.0f, 1.0f) < 0.2f)
 	{
@@ -27,7 +19,7 @@ void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
 		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
 
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, PADDLE_getDx(sprite), 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, paddle_data->dx, 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
 	}
 }
 
@@ -188,80 +180,4 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 SpriteCollisionResponseType PADDLE_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
 	return kCollisionTypeOverlap;
-}
-
-void PADDLE_setDx(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			paddle_data->dx = value;
-		}
-	}
-}
-
-float PADDLE_getDx(LCDSprite* sprite)
-{
-	if(sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			return paddle_data->dx;
-		}
-	}
-	return 0.f;
-}
-
-int PADDLE_getTimerExtend(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			return paddle_data->timerExpand;
-		}
-	}
-	return 0.f;
-}
-
-int PADDLE_getTimerReduce(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			return paddle_data->timerReduce;
-		}
-	}
-	return 0.f;
-}
-
-void PADDLE_setSpeedWind(LCDSprite* sprite, int value)
-{
-	if (sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			paddle_data->speedWind = value;
-		}
-	}
-}
-
-int PADDLE_getSpeedWind(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (paddle_data)
-		{
-			return paddle_data->speedWind;
-		}
-	}
-	return 0.f;
 }

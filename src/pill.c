@@ -1,80 +1,140 @@
 #include "pill.h"
-#include "common.h"
+#include "utils.h"
+#include "memory.h"
+#include "resourcemanager.h"
+#include "gamestate.h"
 
-struct PillData
-{
-	EPillType type;
-
+static const EPillType PillTypes[] = {
+	SLOW_DOWN,
+	EXTRA_LIFE,
+	STICKY,
+	EXPAND,
+	REDUCE,
+	MEGABALL,
+	MULTIBALL
 };
 
-LCDSprite* PILL_create(float x, float y, char type)
+LCDSprite* PILL_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
 	LCDSprite* pill = pd->sprite->newSprite();
 
-	pd->sprite->setUpdateFunction(pill, PILL_updateSprite);
+	// Initialize paddle data
+	PillData* pillData = pd_malloc(sizeof(PillData));
+	int typeIndex = randomInt(0, PILLS_NUMBER - 1);
+	pillData->type = PillTypes[typeIndex];
+	pd->sprite->setUserdata(pill, (void*)pillData);
 
 	// Set bitmap
 	char* pillName = NULL; // temporary string
-	getPlaydateAPI()->system->formatString(&pillName, "pill_%c", type);
+	getPlaydateAPI()->system->formatString(&pillName, "pill_%c", PILL_translateType(pillData->type));
 	pd->sprite->setImage(pill, RESOURCEMANAGER_getImage(pillName), kBitmapUnflipped);
-
 	int w, h;
-	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage(pillName), &w, &h, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(pd->sprite->getImage(pill), &w, &h, NULL, NULL, NULL);
 
 	// Create bounds rect for ball
 	PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
 	pd->sprite->setBounds(pill, bounds);
+
+	pd->sprite->moveTo(pill, x, y);
+	pd->sprite->setZIndex(pill, 1000);
+	pd->sprite->setUpdateFunction(pill, PILL_updateSprite);
+	pd->sprite->addSprite(pill);
+
+	pd->sprite->setTag(pill, PILL);
 
 	// Create collision rect for ball and set collisions to bounce
 	PDRect cr = PDRectMake(1.f, 1.f, (float)(w - 2), (float)(h - 2));
 	pd->sprite->setCollideRect(pill, cr);
 	pd->sprite->setCollisionResponseFunction(pill, PILL_collisionResponse);
 
-	pd->sprite->moveTo(pill, x, y);
-	pd->sprite->setZIndex(pill, 1000);
-	pd->sprite->addSprite(pill);
-
-	pd->sprite->setTag(pill, PILL);
-
-	// Initialize paddle data
-	PillData* pillData = pd_malloc(sizeof(PillData));
-	pillData->type = PILL_translateType(type);
-	pd->sprite->setUserdata(pill, (void*)pillData);
 	return pill;
 }
 
 void PILL_destroy(LCDSprite* sprite)
 {
+	if (sprite) 
+	{
+		getPlaydateAPI()->sprite->removeSprite(sprite);
+		PillData* pillData = (PillData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		pd_free(pillData);
+		pd_free(sprite);
+	}
 }
 
 void PILL_updateSprite(LCDSprite* sprite)
 {
+	if (sprite) 
+	{
+		PlaydateAPI* pd = getPlaydateAPI();
+		// Move the ball and check for collisions
+		int len = 0;
+		float actual_x = 0;
+		float actual_y = 0;
+		float x, y = 0.0f;
+		pd->sprite->getPosition(sprite, &x, &y);
+
+		SpriteCollisionInfo* collisions = NULL;
+		collisions = pd->sprite->moveWithCollisions(sprite, x, y + 1.4f, &actual_x, &actual_y, &len);
+
+		// check if there is any collision
+		if (len > 0)
+		{
+			for (int i = 0; i < len; i++)
+			{
+				if (pd->sprite->getTag(collisions[i].other) == PADDLE)
+				{
+					GAMESTATE_getPowerup(collisions[i].sprite);
+					PILL_destroy(sprite);
+					//PILL_spawnPufft(x, y, ball_bounds.width * 0.5f);
+					//sfx();
+				}
+			}
+		}
+
+		PDRect pillBounds = pd->sprite->getBounds(sprite);
+		if (y - pillBounds.height > 240) 
+		{
+			PILL_destroy(sprite);
+		}
+	}
 }
 
-EPillType PILL_translateType(char type)
+EPillType PILL_getType(LCDSprite* sprite)
 {
-	EPillType returnType = SLOW_DOWN;
-	if (type == 'a')
-		returnType = SLOW_DOWN;
-	else if (type == 'b')
-		returnType = EXTRA_LIFE;
-	else if (type == 'c')
-		returnType = STICKY;
-	else if (type == 'd')
-		returnType = EXPAND;
-	else if (type == 'e')
-		returnType = REDUCE;
-	else if (type == 'f')
-		returnType = MEGABALL;
-	else if (type == 'g')
-		returnType = MULTIBALL;
+	if (sprite)
+	{
+		PillData* pillData = (PillData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		if (pillData)
+		{
+			return pillData->type;
+		}
+	}
+}
+
+char PILL_translateType(EPillType type)
+{
+	char returnType = 'a';
+	if (type == SLOW_DOWN)
+		returnType = 'a';
+	else if (type == EXTRA_LIFE)
+		returnType = 'b';
+	else if (type == STICKY)
+		returnType = 'c';
+	else if (type == EXPAND)
+		returnType = 'd';
+	else if (type == REDUCE)
+		returnType = 'e';
+	else if (type == MEGABALL)
+		returnType = 'f';
+	else if (type == MULTIBALL)
+		returnType = 'g';
 
 	return returnType;
 }
 
 SpriteCollisionResponseType PILL_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
-	return SpriteCollisionResponseType();
+	return kCollisionTypeOverlap;
 }

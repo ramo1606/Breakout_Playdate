@@ -8,11 +8,6 @@ void UTILS_init()
     srand(pd->system->getSecondsSinceEpoch(NULL));
 }
 
-bool areEqual(float a, float b)
-{
-    return fabs(a - b) < EPSILON;
-}
-
 // Function to find the middle of three number
 float mid(float a, float b, float c)
 {

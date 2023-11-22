@@ -1,6 +1,5 @@
 #include "ball.h"
 
-#include "common.h"
 #include "utils.h"
 #include "memory.h"
 #include "resourcemanager.h"
@@ -10,34 +9,15 @@
 #include "brick.h"
 #include "paddle.h"
 #include "patterns.h"
+#include "raymath.h"
 
 #include <stdlib.h>
-#include <time.h>
 
 static const float MAX_COLLISIONS_COUNT = 600.0f;
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 2.5f;
 static const float BALL_ANGLE = 1.f;
-
-struct BallData
-{
-	float dx;
-	float dy;
-	float lastHitDx;
-	float lastHitDy;
-	float speed;
-	float angle;
-	bool stuck;
-	bool dead;
-	bool rammed;
-	int collisionCount;
-	int timerSlow;
-	int timerMega;
-	int timerMegaWait;
-	float infiniteCounter;
-	ESpriteType lastCollision;
-};
 
 void checkInfinite(LCDSprite* ball) 
 {
@@ -49,7 +29,7 @@ void checkInfinite(LCDSprite* ball)
 		do 
 		{
 			newAngle = floorf(randomFloat(0.0f, 3.0f));
-		} while (areEqual(newAngle, ballData->angle));
+		} while (FloatEquals(newAngle, ballData->angle));
 		
 		BALL_setAngle(ball, newAngle);
 	}
@@ -90,8 +70,8 @@ LCDSprite* BALL_create(float x, float y)
 	ballData->lastHitDy = BALL_DY;
 	ballData->speed = BALL_SPEED;
 	ballData->angle = BALL_ANGLE;
-	ballData->stuck = false;
-	ballData->dead = false;
+	ballData->isStuck = false;
+	ballData->isDead = false;
 	ballData->rammed = false;
 	ballData->collisionCount = 0;
 	ballData->infiniteCounter = 0.0f;
@@ -138,7 +118,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 			ballData->infiniteCounter += 1.0f;
 		}
 
-		if(BALL_isStuck(sprite))
+		if(ballData->isStuck)
 		{
 			// Get all the data that we need to calculate the ball position if is stuck, which is on the top of the paddle
 			LCDSprite* paddle = GAMESTATE_getPaddle();
@@ -203,97 +183,16 @@ void BALL_updateSprite(LCDSprite* sprite)
 	}
 }
 
-void BALL_setDx(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			ballData->dx = value;
-		}
-	}
-}
-
-float BALL_getDx(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->dx;
-		}
-	}
-	return 0;
-}
-
-void BALL_setDy(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			ballData->dy = value;
-		}
-	}
-}
-
-float BALL_getDy(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->dy;
-		}
-	}
-	return 0;
-}
-
-void BALL_setStuck(LCDSprite* sprite, bool stuck)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			ballData->stuck = stuck;
-		}
-	}
-}
-
-bool BALL_isStuck(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->stuck;
-		}
-	}
-	return false;
-}
-
-bool BALL_isDead(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->dead;
-		}
-	}
-	return false;
-}
-
 SpriteCollisionResponseType BALL_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
-	return kCollisionTypeBounce;
+	if (getPlaydateAPI()->sprite->getTag(other) == PILL) 
+	{
+		return kCollisionTypeOverlap;
+	}
+	else 
+	{
+		return kCollisionTypeBounce;
+	}
 }
 
 void BALL_setAngle(LCDSprite* sprite, float angle)
@@ -304,12 +203,12 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 		if (ballData)
 		{
 			ballData->angle = angle;
-			if (areEqual(angle, 2.f))
+			if (FloatEquals(angle, 2.f))
 			{
 				ballData->dx = .5f * sign(ballData->dx);
 				ballData->dy = 1.3f * sign(ballData->dy);
 			}
-			else if (areEqual(angle, 0.f))
+			else if (FloatEquals(angle, 0.f))
 			{
 				ballData->dx = 1.3f * sign(ballData->dx);
 				ballData->dy = .5f * sign(ballData->dy);
@@ -321,103 +220,6 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 			}
 		}
     }
-}
-
-bool BALL_rammed(LCDSprite* sprite)
-{
-	if (sprite)
-    {
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->rammed;
-        }
-    }
-	return false;
-}
-
-void BALL_setRammed(LCDSprite* sprite, bool rammed)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-        if (ballData)
-        {
-			ballData->rammed = rammed;
-		}
-	}
-}
-
-void BALL_resetInfiniteCounter(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			ballData->infiniteCounter = 0;
-		}
-	}
-}
-
-void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			ballData->infiniteCounter += value;
-		}
-	}
-}
-
-float BALL_infiniteCounter(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->infiniteCounter;
-		}
-	}
-}
-
-int BALL_getMegaballTimer(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->timerMega;
-		}
-	}
-}
-
-float BALL_getLastHitDx(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->lastHitDx;
-		}
-	}
-}
-
-float BALL_getLastHitDy(LCDSprite* sprite)
-{
-	if (sprite)
-	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-		if (ballData)
-		{
-			return ballData->lastHitDy;
-		}
-	}
 }
 
 void BALL_resetBall(LCDSprite* sprite)
@@ -457,7 +259,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 	{
 		if (collision->normal.y == -1)
 		{
-			ballData->dead = true;
+			ballData->isDead = true;
 		}
 		else
 		{
@@ -477,6 +279,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		pd->sprite->getPosition(collision->other, &pad_x, &pad_y);
 		PDRect padRect = pd->sprite->getCollideRect(collision->other);
 		PDRect ballRect = pd->sprite->getCollideRect(sprite);
+		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(collision->other);
 
 		bool bend = false;
 		bool angf = false;
@@ -507,10 +310,10 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		// Change angle
 		if (collision->normal.y == -1)
 		{
-			if (!bend && abs(PADDLE_getDx(collision->other)) > 1)
+			if (!bend && abs(paddleData->dx) > 1)
 			{
 				bend = true;
-				if (sign(PADDLE_getDx(collision->other)) == sign(BALL_getDx(sprite)))
+				if (sign(paddleData->dx) == sign(ballData->dx))
 				{
 					angf = true;
 				}
@@ -530,7 +333,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 				else
 				{
 					// Raise angle
-					if (areEqual(ballData->angle, 2.f))
+					if (FloatEquals(ballData->angle, 2.f))
 					{
 						ballData->dx = -ballData->dx;
 					}
@@ -564,6 +367,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 	// BRICK Collision
 	if (other_tag == BRICK)
 	{
+		BrickData* brickData = (BrickData*)pd->sprite->getUserdata(collision->other);
 		if (ballData->lastCollision == NONE)
 		{
 			ballData->lastCollision = BRICK;
@@ -579,7 +383,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		checkInfinite(sprite);
 		GAMESTATE_hitBrick(collision, true);
 
-		if (BRICK_getType(collision->other) == INVINCIBLE)
+		if (brickData->type == INVINCIBLE)
 		{
 			BALL_spawnPuft(x, y);
 		}
@@ -599,7 +403,7 @@ void BALL_spawnTrail(float x, float y, float radius)
 		float ox = (float)sin(ang) * radius * 0.3f;
 		float oy = (float)cos(ang) * radius * 0.3f;
 
-		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), ditheringPatterns[13], 0.0f);
+		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), kColorBlack, 0.0f);
 	}
 }
 

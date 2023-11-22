@@ -4,6 +4,7 @@
 
 #include "memory.h"
 #include "utils.h"
+#include "raymath.h"
 
 #include "particles.h"
 #include "patterns.h"
@@ -13,6 +14,7 @@
 #include "paddle.h"
 #include "ball.h"
 #include "brick.h"
+#include "pill.h"
 
 #include <stdbool.h>
 
@@ -46,6 +48,7 @@ typedef struct
 
 	bool sticky;
 
+	int lives;
 	int chain;
 	int scoreMul;
 	int points;
@@ -71,6 +74,96 @@ static char* levels[MAX_SICK] = {
 		"seriously now?",
 		"maximum pwnage!"
 };
+
+void boostChain()
+{
+	if (state->chain == 6)
+	{
+		int si = randomInt(0, MAX_SICK - 1);
+		//sfx();
+		//showSash();
+	}
+
+	state->chain += 1;
+	state->chain = (int)mid(1.f, (float)state->chain, 7.f);
+}
+
+void getPoints(int points)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+	PaddleData* paddleData = (BallData*)pd->sprite->getUserdata(state->paddle);
+
+	if (state->fastMode)
+	{
+		points = points * 2;
+	}
+
+	if (paddleData->timerReduce <= 0)
+	{
+		state->points += points * state->chain * state->scoreMul;
+	}
+	else
+	{
+		state->points += points * state->chain * state->scoreMul * 10;
+	}
+
+	if (state->points > 10000)
+	{
+		state->points2 += 1;
+		state->points -= 10000;
+	}
+}
+
+void GAMESTATE_getPowerup(LCDSprite* pill)
+{
+	if (pill) 
+	{
+		PlaydateAPI* pd = getPlaydateAPI();
+		PillData* pillData = (PillData*)pd->sprite->getUserdata(pill);
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(state->ball);
+		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(state->paddle);
+
+		if (pillData) 
+		{
+			switch (PILL_getType(pill))
+			{
+			case SLOW_DOWN:
+				ballData->timerSlow = 400;
+				//showSash("slowdown!", 9, 4);
+				break;
+			case EXTRA_LIFE:
+				state->lives += 1;
+				//showSash("Extra Life!", 7, 6);
+				break;
+			case STICKY:
+				bool hasStuck = false;
+				//TODO: logick for sticky paddle
+				break;
+			case EXPAND:
+				paddleData->timerExpand = 600;
+				paddleData->timerReduce = 0;
+				//showSash("Expand!", 12, 1);
+				break;
+			case REDUCE:
+				paddleData->timerReduce = 600;
+				paddleData->timerExpand = 0;
+				//showSash("Reduce!", 0, 8);
+				break;
+			case MEGABALL:
+				ballData->timerMegaWait = 600;
+				ballData->timerMega = 0;
+				//showSash("Megaball!", 8, 2);
+				break;
+			case MULTIBALL:
+				//multiball();
+				//showSash("Multiball!", 8, 2);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+}
 
 void setupWall(LCDSprite* wall, PDRect collisionRect, float pos_x, float pos_y)
 {
@@ -120,17 +213,18 @@ void serveBall(void)
 	PlaydateAPI* pd = getPlaydateAPI();
 
 	// Get paddle position 
-	float paddle_x = 0;
-	float paddle_y = 0;
-	pd->sprite->getPosition(state->paddle, &paddle_x, &paddle_y);
-	PDRect paddle_rect = pd->sprite->getCollideRect(state->paddle);
+	float paddleX = 0;
+	float paddleY = 0;
+	pd->sprite->getPosition(state->paddle, &paddleX, &paddleY);
+	PDRect paddleRect = pd->sprite->getCollideRect(state->paddle);
     
     // Create new ball at paddle top center position
-    state->ball = BALL_create(paddle_x, paddle_y - (paddle_rect.width * 0.5));
-	BALL_setDx(state->ball, 1.f);
-	BALL_setDy(state->ball, -1.f);
-	BALL_setAngle(state->ball, 1.f);
-	BALL_setStuck(state->ball, true);
+    state->ball = BALL_create(paddleX, paddleY - (paddleRect.width * 0.5));
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(state->ball);
+	ballData->dx = 1.0f;
+	ballData->dy = -1.0f;
+	ballData->angle = 1.0f;
+	ballData->isStuck = true;
 
 	state->scoreMul = 1;
 }
@@ -138,14 +232,15 @@ void serveBall(void)
 void releaseStuck(void) 
 {
 	PlaydateAPI* pd = getPlaydateAPI();
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(state->ball);
 
-	if (BALL_isStuck(state->ball))
+	if (ballData->isStuck)
 	{
 		float x = 0;
 		float y = 0;
 		pd->sprite->getPosition(state->ball, &x, &y);
 		pd->sprite->moveTo(state->ball, x, y);
-		BALL_setStuck(state->ball, false);
+		ballData->isStuck = false;
 	}
 }
 
@@ -213,6 +308,8 @@ void loadLevelBricks(void)
 
 bool levelFinished()
 {
+	PlaydateAPI* pd = getPlaydateAPI();
+
 	bool returnValue = false;
 
 	//int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
@@ -224,7 +321,8 @@ bool levelFinished()
 	// checks if there is any invincible brick
 	for (int i = 0; i < da_count(state->bricks); i++)
 	{
-		if(/*state->bricks[i].v == true*/BRICK_getType(da_get(state->bricks, i)) != INVINCIBLE) return false;
+		BrickData* brickData = (BrickData*)pd->sprite->getUserdata(da_get(state->bricks, i));
+		if(brickData->visible && brickData->type != INVINCIBLE) return false;
 	}
 
 	return true;
@@ -299,14 +397,15 @@ void GAMESTATE_processInput(void)
 	pd->system->getButtonState(&current, NULL, &currentReleased);
 	bool buttonPressed = false;
 
+	PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(state->paddle);
 	if (current & kButtonLeft)
 	{
-		PADDLE_setDx(state->paddle, -PADDLE_DX);
+		paddleData->dx = -PADDLE_DX;
 		buttonPressed = true;
 	}
 	if (current & kButtonRight)
 	{
-		PADDLE_setDx(state->paddle, PADDLE_DX);
+		paddleData->dx = PADDLE_DX;
 		buttonPressed = true;
 	}
 	if (current & kButtonA) 
@@ -317,12 +416,12 @@ void GAMESTATE_processInput(void)
 	// Slowdown paddle speed after release the button press
 	if (!buttonPressed)
 	{
-		PADDLE_setDx(state->paddle, PADDLE_getDx(state->paddle) / 1.3f);
-		PADDLE_setSpeedWind(state->paddle, 0);
+		paddleData->dx = paddleData->dx / 1.3f;
+		paddleData->speedWind = 0;
 	}
 	else
 	{
-		PADDLE_setSpeedWind(state->paddle, PADDLE_getSpeedWind(state->paddle) + 1);
+		paddleData->speedWind += 1;
 	}
 }
 
@@ -353,8 +452,8 @@ unsigned int GAMESTATE_init(void)
 unsigned int GAMESTATE_update(float deltaTime)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
-    
-	if (PADDLE_getTimerReduce(state->paddle) > 0) 
+	PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(state->paddle);
+	if (paddleData->timerReduce > 0)
 	{
 		state->scoreMul = 2;
 	}
@@ -386,7 +485,8 @@ unsigned int GAMESTATE_update(float deltaTime)
 	
 
     // Check if ball still alive
-	if (BALL_isDead(state->ball))
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(state->ball);
+	if (ballData->isDead)
 	{
 		BALL_destroy(state->ball);
 		serveBall();
@@ -398,15 +498,15 @@ unsigned int GAMESTATE_update(float deltaTime)
 	PDRect pad_bounds = pd->sprite->getBounds(state->paddle);
 
     // Check if ball is stuck
-    if (BALL_isStuck(state->ball))
+    if (ballData->isStuck)
 	{
-		PDRect ball_rect = pd->sprite->getCollideRect(state->ball);
-		pd->sprite->moveTo(state->ball, pad_x, pad_y - ball_rect.height);
+		PDRect ballRect = pd->sprite->getCollideRect(state->ball);
+		pd->sprite->moveTo(state->ball, pad_x, pad_y - ballRect.height);
 	}
 
-	if (!areEqual(PADDLE_getDx(state->paddle), 0.f)) 
+	if (!FloatEquals(paddleData->dx, 0.f))
 	{
-		if (PADDLE_getDx(state->paddle) > 0.f)
+		if (paddleData->dx > 0.f)
 		{
 			//spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
 		}
@@ -426,8 +526,8 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
 	pd->graphics->setBackgroundColor(kColorClear);
 
-	PARTICLES_draw();
 	pd->sprite->updateAndDrawSprites();
+	PARTICLES_draw();
 
     return 0;
 }
@@ -472,56 +572,23 @@ void GAMESTATE_checkSD(void)
 
 }
 
-void boostChain() 
-{
-	if (state->chain == 6) 
-	{
-		int si = randomInt(0, MAX_SICK - 1);
-		//sfx();
-		//showSash();
-	}
-
-	state->chain += 1;
-	state->chain = (int)mid(1.f, (float)state->chain, 7.f);
-}
-
-void getPoints(int points) 
-{
-	if (state->fastMode) 
-	{
-		points = points * 2;
-	}
-
-	if (PADDLE_getTimerReduce(state->paddle) <= 0) 
-	{
-		state->points += points * state->chain * state->scoreMul;
-	}
-	else 
-	{
-		state->points += points * state->chain * state->scoreMul*10;
-	}
-
-	if (state->points > 10000) 
-	{
-		state->points2 += 1;
-		state->points -= 10000;
-	}
-}
-
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 {
 	if (collision)
 	{
+		PlaydateAPI* pd = getPlaydateAPI();
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(collision->sprite);
+		BrickData* brickData = (BrickData*)pd->sprite->getUserdata(collision->other);
 		int flashTime = 10;
-		if (BRICK_getType(collision->other) == SPLODING || collision->other == state->suddenDeathBrick)
+		if (brickData->type == SPLODING || collision->other == state->suddenDeathBrick)
 		{
-			//BALL_megaBallSmash();
-			BALL_resetInfiniteCounter(collision->sprite);
+			BALL_megaballSmash(collision->sprite);
+			ballData->infiniteCounter = 0;
 
 			// Splosion brick
 			// TODO: sfx(2 + chain);
 			// TODO: BRICK_shatter();
-			BRICK_setType(collision->other, ZZ);
+			brickData->type = ZZ;
 
 			if (collision->other == state->suddenDeathBrick) 
 			{
@@ -538,16 +605,16 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 				//TODO: boostChain();
 			}
 		}
-		else if (BRICK_getType(collision->other) == REGULAR)
+		else if (brickData->type == REGULAR)
 		{
-			//BALL_megaBallSmash();
-			BALL_resetInfiniteCounter(collision->sprite);
+			BALL_megaballSmash(collision->sprite);
+			ballData->infiniteCounter = 0;
 
 			// Regular brick
 			// TODO: sfx(2 + chain);
 			// TODO: BRICK_shatter();
-			BRICK_setFlash(collision->other, flashTime);
-			BRICK_setVisible(collision->other, false);
+			brickData->flash = flashTime;
+			brickData->visible = false;
 
 			if (combo) 
 			{
@@ -555,21 +622,21 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 				//boostChain();
 			}
 		}
-		else if (BRICK_getType(collision->other) == INVINCIBLE)
+		else if (brickData->type == INVINCIBLE)
 		{
 			//sfx();
 		}
-		else if (BRICK_getType(collision->other) == HARDENED) 
+		else if (brickData->type == HARDENED)
 		{
-			//BALL_megaBallSmash();
-			BALL_resetInfiniteCounter(collision->sprite);
+			BALL_megaballSmash(collision->sprite);
+			ballData->infiniteCounter = 0;
 
-			if (BALL_getMegaballTimer(collision->sprite) > 0) 
+			if (ballData->timerMega > 0) 
 			{
 				//sfx();
 				//BRICK_shatter();
-				BRICK_setFlash(collision->other, flashTime);
-				BRICK_setVisible(collision->other, false);
+				brickData->flash = flashTime;
+				brickData->visible = false;
 
 				if (combo)
 				{
@@ -580,34 +647,38 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 			else 
 			{
 				//sfx();
-				BRICK_setFlash(collision->other, flashTime);
+				brickData->flash = flashTime;
 				// Bump the brick
-				BRICK_setDx(collision->other, BALL_getLastHitDx(collision->sprite) * 0.25f);
-				BRICK_setDy(collision->other, BALL_getLastHitDy(collision->sprite) * 0.25f);
+				brickData->dx = ballData->lastHitDx * 0.25f;
+				brickData->dy = ballData->lastHitDy * 0.25f;
 
-				BRICK_decreaseHP(collision->other);
-				if (BRICK_getHP(collision->other) <= 0) 
+				brickData->hp--;
+				if (brickData->hp <= 0)
 				{
-					BRICK_setType(collision->other, REGULAR);
+					brickData->type = REGULAR;
 				}
 			}
 		}
-		else if (BRICK_getType(collision->other) == POWER)
+		else if (brickData->type == POWER)
 		{
-			//BALL_megaBallSmash();
-			BALL_resetInfiniteCounter(collision->sprite);
+			BALL_megaballSmash(collision->sprite);
+			ballData->infiniteCounter = 0;
 
 			//sfx();
 			//BRICK_shatter();
-			BRICK_setFlash(collision->other, flashTime);
-			BRICK_setVisible(collision->other, false);
+			brickData->flash = flashTime;
+			brickData->visible = false;
 
 			if (combo)
 			{
-				//getPoints(1);
-				//boostChain();
+				getPoints(1);
+				boostChain();
 			}
-			//spawnPill();
+			
+			float x = 0.0f;
+			float y = 0.0f;
+			pd->sprite->getPosition(collision->other, &x, &y);
+			PILL_create(x, y);
 		}
 	}
 }

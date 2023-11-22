@@ -6,6 +6,7 @@
 // Game
 #define TEXT_WIDTH 86
 #define TEXT_HEIGHT 16
+#define PILLS_NUMBER 7 
 
 //Font
 static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";

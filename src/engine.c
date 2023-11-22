@@ -3,6 +3,7 @@
 #include "resourcemanager.h"
 #include "memory.h"
 
+#include "raymath.h"
 #include "utils.h"
 #include "transitionmanager.h"
 #include "statemanager.h"
@@ -14,6 +15,8 @@
 #include <stdlib.h>
 #include <math.h>
 
+#define RAYMATH_IMPLEMENTATION
+
 typedef struct
 {
 	//Mode
@@ -22,6 +25,7 @@ typedef struct
 } Engine;
 
 static Engine engine;
+static float deltaTime;
 
 void ENGINE_create(PlaydateAPI* p)
 {
@@ -31,6 +35,8 @@ void ENGINE_create(PlaydateAPI* p)
 	TRANSITION_MANAGER_init();
 	PARTICLES_init();
 	UTILS_init();
+
+	deltaTime = 0.0f;
 
 	//Fonts
 	const char* err;
@@ -131,7 +137,7 @@ int ENGINE_update(void)
 	updateState();
 	getPlaydateAPI()->graphics->clear(kColorWhite);
 	
-	float deltaTime = getPlaydateAPI()->system->getElapsedTime();
+	deltaTime = getPlaydateAPI()->system->getElapsedTime();
 	getPlaydateAPI()->system->resetElapsedTime();
 
 	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
@@ -141,4 +147,9 @@ int ENGINE_update(void)
 	STATEMANAGER_draw(engine.stateManager, deltaTime);
 
 	return 1;
+}
+
+float ENGINE_deltaTime(void)
+{
+	return deltaTime;
 }

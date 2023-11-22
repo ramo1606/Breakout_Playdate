@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "utils.h"
+#include "raymath.h"
 #include "patterns.h"
 #include "rmem.h"
 #include "resourcemanager.h"
@@ -113,7 +114,7 @@ void PARTICLES_draw(void)
 
 		if (particle->type == STATIC_PIX || particle->type == GRAVITY_PIX)
 		{
-			pd->graphics->fillRect(particle->x - 1, particle->y - 1, 2, 2, particle->color);
+			pd->graphics->fillRect(particle->x, particle->y, 1, 1, particle->color);
 		}
 		else if (particle->type == SMOKE_BALL || particle->type == GRAVITY_SMOKE)
 		{
@@ -124,17 +125,17 @@ void PARTICLES_draw(void)
 			LCDBitmapFlip flipped = kBitmapUnflipped;
 			if (particle->type == ROTATING_SPRITE)
 			{
-				if (areEqual(particle->rotation, 2.f)) 
+				if (FloatEquals(particle->rotation, 2.f))
 				{
 					flipped = kBitmapFlippedY;
 					
 				}
-				else if (areEqual(particle->rotation, 3.f))
+				else if (FloatEquals(particle->rotation, 3.f))
 				{
 					flipped = kBitmapFlippedXY;
 					
 				}
-				else if (areEqual(particle->rotation, 4.f))
+				else if (FloatEquals(particle->rotation, 4.f))
 				{
 					flipped = kBitmapFlippedX;
 					

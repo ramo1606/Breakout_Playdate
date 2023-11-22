@@ -18,5 +18,5 @@ void GAMESTATE_resetChain();
 
 void GAMESTATE_checkSD(void);
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo);
-
+void GAMESTATE_getPowerup(LCDSprite* pill);
 #endif

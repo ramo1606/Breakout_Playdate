@@ -4,7 +4,8 @@
 
 static char* levels[LEVELS_AMMOUNT] = {
     //01 simple breakout
-    "///xb8xxb8xxbpbbpbbpbxxb8xxb8x"
+    //"///xb8xxb8xxbpbbpbbpbxxb8xxb8x"
+    "///pp8ppp8pppppppppppppp8ppp8p"
 
     //02 stairway to heaven
     ,"/b/bb/bbp/b3/b4/b4p/b6/bsb5/b7p/h9s"

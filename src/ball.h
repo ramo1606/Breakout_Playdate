@@ -2,31 +2,33 @@
 #define BALL_H
 
 #include "pd_api.h"
+#include "common.h"
 
 #include <stdbool.h>
 
-typedef struct BallData BallData;
+typedef struct BallData
+{
+	float dx;
+	float dy;
+	float lastHitDx;
+	float lastHitDy;
+	float speed;
+	float angle;
+	bool isStuck;
+	bool isDead;
+	bool rammed;
+	int collisionCount;
+	int timerSlow;
+	int timerMega;
+	int timerMegaWait;
+	float infiniteCounter;
+	ESpriteType lastCollision;
+} BallData;
 
 LCDSprite* BALL_create(float x, float y);
 void BALL_destroy(LCDSprite* sprite);
 void BALL_updateSprite(LCDSprite* sprite);
-
-void BALL_setDx(LCDSprite* sprite, float value);
-float BALL_getDx(LCDSprite* sprite);
-void BALL_setDy(LCDSprite* sprite, float value);
-float BALL_getDy(LCDSprite* sprite);
-void BALL_setStuck(LCDSprite* sprite, bool stuck);
-bool BALL_isStuck(LCDSprite* sprite);
-bool BALL_isDead(LCDSprite* sprite);
 void BALL_setAngle(LCDSprite* sprite, float angle);
-bool BALL_rammed(LCDSprite* sprite);
-void BALL_setRammed(LCDSprite* sprite, bool rammed);
-void BALL_resetInfiniteCounter(LCDSprite* sprite);
-void BALL_increaseInfiniteCounter(LCDSprite* sprite, float value);
-float BALL_infiniteCounter(LCDSprite* sprite);
-int BALL_getMegaballTimer(LCDSprite* sprite);
-float BALL_getLastHitDx(LCDSprite* sprite);
-float BALL_getLastHitDy(LCDSprite* sprite);
 
 void BALL_spawnTrail(float x, float y, float radius);
 void BALL_spawnPuft(float x, float y);
