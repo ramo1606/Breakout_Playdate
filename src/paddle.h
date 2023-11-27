@@ -2,6 +2,7 @@
 #define PADDLE_H
 
 #include "pd_api.h"
+#include "common.h"
 #include <stdbool.h>
 
 #define PADDLE_INITIAL_X_POS 200
@@ -13,6 +14,7 @@ typedef struct PaddleData
 	float dx;
 	int timerReduce;
 	int timerExpand;
+	EPaddleSize currentSize;
 
 	int speedWind;
 } PaddleData;

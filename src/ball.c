@@ -35,6 +35,46 @@ void checkInfinite(LCDSprite* ball)
 	}
 }
 
+void BALL_megaBall(LCDSprite* sprite, bool isMega) 
+{
+	if (sprite)
+	{
+		PlaydateAPI* pd = getPlaydateAPI();
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+		if (ballData)
+		{
+			char* ballName = NULL;
+			if (isMega) 
+			{
+				ballName = "ball_super";
+			}
+			else 
+			{
+				ballName = "ball";
+			}
+
+			ballData->isMega = isMega;
+			pd->sprite->setImage(sprite, RESOURCEMANAGER_getImage(ballName), kBitmapUnflipped);
+
+			int w, h;
+			pd->graphics->getBitmapData(RESOURCEMANAGER_getImage(ballName), &w, &h, NULL, NULL, NULL);
+
+			float x, y;
+			pd->sprite->getPosition(sprite, &x, &y);
+
+			// Create bounds rect for paddle
+			PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
+			pd->sprite->setBounds(sprite, bounds);
+
+			// Create collision rect for paddle
+			PDRect cr = PDRectMake(1.f, 1.f, (float)(w - 2), (float)(h - 2));
+			pd->sprite->setCollideRect(sprite, cr);
+
+			pd->sprite->moveTo(sprite, x, y);
+		}
+	}
+}
+
 LCDSprite* BALL_create(float x, float y)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
@@ -73,9 +113,12 @@ LCDSprite* BALL_create(float x, float y)
 	ballData->isStuck = false;
 	ballData->isDead = false;
 	ballData->rammed = false;
+	ballData->isMega = false;
 	ballData->collisionCount = 0;
 	ballData->infiniteCounter = 0.0f;
 	ballData->timerSlow = 0;
+	ballData->timerMegaWait = 0;
+	ballData->timerMega = 0;
 	ballData->lastCollision = NONE;
 	pd->sprite->setUserdata(ball, (void*)ballData);
 	return ball;
@@ -116,6 +159,15 @@ void BALL_updateSprite(LCDSprite* sprite)
 		else 
 		{
 			ballData->infiniteCounter += 1.0f;
+		}
+
+		if ((ballData->timerMegaWait > 0 || ballData->timerMega > 0) && !ballData->isMega) 
+		{
+			BALL_megaBall(sprite, true);
+		}
+		else if (ballData->timerMegaWait <= 0 && ballData->timerMega <= 0 && ballData->isMega)
+		{
+			BALL_megaBall(sprite, false);
 		}
 
 		if(ballData->isStuck)
@@ -174,11 +226,32 @@ void BALL_updateSprite(LCDSprite* sprite)
 				BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
 			}
 
-			// TODO: Process mega ball collision
-			// TODO: Trail particles
-			BALL_spawnTrail(x, y, ball_bounds.width * 0.5f);
+			// Process mega ball collision
+			// Trail particles
+			if (ballData->timerMega > 0 || ballData->timerMegaWait > 0) 
+			{
+				BALL_spawnMegaTrail(x, y, ball_bounds.width * 0.5f);
+			}
+			else 
+			{
+				BALL_spawnTrail(x, y, ball_bounds.width * 0.5f);
+			}
 			// TODO: Process screen boundaries collision
 			// TODO: process ball is stuck
+		}
+
+		// Powerup timers
+		if (ballData->timerSlow > 0)
+		{
+			ballData->timerSlow--;
+		}
+		if (ballData->timerMega > 0)
+		{
+			ballData->timerMega--;
+		}
+		if (ballData->timerMegaWait > 0)
+		{
+			ballData->timerMegaWait--;
 		}
 	}
 }
@@ -389,10 +462,23 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		}
 		else 
 		{
+			pd->sprite->setVisible(collision->other, false);
 			pd->sprite->removeSprite(collision->other);
-			BRICK_destroy(collision->other);
+			//BRICK_destroy(collision->other);
 		}
 	}
+}
+
+void BALL_spawnMegaTrail(float x, float y, float radius)
+{
+	PARTICLES_addParticle(x, y, 0.0f, 0.0f, SMOKE_BALL, 60.f + randomFloat(0.0f, 15.0f), ditheringPatterns[6], 6.f + randomFloat(0.0f, 2.0f));
+	//if (randomFloat(0.0f, 1.0f) < 1.f)
+	//{
+	//	float ang = randomFloat(0.0f, 1.0f);
+	//	float ox = (float)sin(ang) * radius * 0.5f;
+	//	float oy = (float)cos(ang) * radius * 0.5f;
+	//
+	//}
 }
 
 void BALL_spawnTrail(float x, float y, float radius)
@@ -400,8 +486,8 @@ void BALL_spawnTrail(float x, float y, float radius)
 	if (randomFloat(0.0f, 1.0f) < 0.8f)
 	{
 		float ang = randomFloat(0.0f, 1.0f);
-		float ox = (float)sin(ang) * radius * 0.3f;
-		float oy = (float)cos(ang) * radius * 0.3f;
+		float ox = (float)sin(ang) * radius * 0.4f;
+		float oy = (float)cos(ang) * radius * 0.4f;
 
 		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), kColorBlack, 0.0f);
 	}

@@ -247,7 +247,6 @@ void releaseStuck(void)
 void loadLevelBricks(void)
 {
 	char* currentLevel = LEVEL_get(state->currentLevel);
-	//state->bricks = pd_malloc(sizeof(LCDSprite*) * strlen(currentLevel));
 
 	// b = normal brick
 	// x = empty space
@@ -274,7 +273,6 @@ void loadLevelBricks(void)
 			currentBrick == 'p') 
 		{
 			da_push(state->bricks, BRICK_create(gridPos, currentBrick));
-			//state->bricks[index] = BRICK_create(gridPos, currentBrick);
 			lastBrick = currentBrick;
 		}
 		else if (currentBrick == 'x') 
@@ -297,7 +295,6 @@ void loadLevelBricks(void)
 					lastBrick == 'p') 
 				{
 					da_push(state->bricks, BRICK_create(gridPos, lastBrick));
-					//state->bricks[index] = BRICK_create(gridPos, lastBrick);
 				}
 				gridPos += 1;
 			}
@@ -322,7 +319,7 @@ bool levelFinished()
 	for (int i = 0; i < da_count(state->bricks); i++)
 	{
 		BrickData* brickData = (BrickData*)pd->sprite->getUserdata(da_get(state->bricks, i));
-		if(brickData->visible && brickData->type != INVINCIBLE) return false;
+		if(pd->sprite->isVisible(da_get(state->bricks, i)) && brickData->type != INVINCIBLE) return false;
 	}
 
 	return true;
@@ -569,7 +566,7 @@ void GAMESTATE_resetChain()
 
 void GAMESTATE_checkSD(void)
 {
-
+	
 }
 
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)

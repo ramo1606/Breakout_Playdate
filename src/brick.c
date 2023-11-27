@@ -9,8 +9,8 @@
 
 #include <stdbool.h>
 
-#define BRICK_WIDTH_SPACE_OFFSET 6
-#define BRICK_HEIGHT_SPACE_OFFSET 4
+#define BRICK_WIDTH_SPACE_OFFSET 3
+#define BRICK_HEIGHT_SPACE_OFFSET 2
 
 static const int BRICK_HP = 1;
 
@@ -30,46 +30,6 @@ void animate(LCDSprite* sprite)
 		brickData->animationElapsedTime = brickData->animationElapsedTime + deltaTime;
 	}
 }
-
-//void animate(LCDSprite* sprite)
-//{
-//	PlaydateAPI* pd = getPlaydateAPI();
-//	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
-//	
-//	if (brickData->visible || brickData->flash > 0)
-//	{
-//		if (!areEqual(brickData->dx, 0.0f) || !areEqual(brickData->dy, 0.0f) || !areEqual(brickData->ox, 0.0f) || !areEqual(brickData->oy, 0.0f))
-//		{
-//			brickData->ox += brickData->dx;
-//			brickData->oy += brickData->dy;
-//
-//			brickData->dx -= brickData->ox / 10.f;
-//			brickData->dy -= brickData->oy / 10.f;
-//
-//			if (abs(brickData->dx) > brickData->ox) 
-//			{
-//				brickData->dx = brickData->dx / 1.3f;
-//			}
-//
-//			if (abs(brickData->dy) > brickData->oy)
-//			{
-//				brickData->dy = brickData->dy / 1.3f;
-//			}
-//
-//			if (abs(brickData->ox) < 0.2f && abs(brickData->dx) < 0.25f)
-//			{
-//				brickData->ox = 0.0f;
-//				brickData->dx = 0.0f;
-//			}
-//
-//			if (abs(brickData->oy) < 0.2f && abs(brickData->dy) < 0.25f)
-//			{
-//				brickData->oy = 0.0f;
-//				brickData->dy = 0.0f;
-//			}
-//		}
-//	}
-//}
 
 LCDSprite* BRICK_create(int gridPos, char type)
 {
@@ -100,7 +60,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	pd->sprite->setCollisionResponseFunction(brick, BRICK_collisionResponse);
 
 	// Calculate position
-	float x = 80.f + ((gridPos - 1) % 11) * (w + BRICK_WIDTH_SPACE_OFFSET);
+	float x = 60.f + ((gridPos - 1) % 11) * (float)(w + BRICK_WIDTH_SPACE_OFFSET);
 	float y = 0 - h * 0.5f;
 	pd->sprite->moveTo(brick, x, y);
 	pd->sprite->setZIndex(brick, 1000);
@@ -115,7 +75,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 	brickData->type = BRICK_translateType(type);
 	brickData->hp = (brickData->type == HARDENED) ? BRICK_HP * 2 : BRICK_HP;
 	brickData->destX = x;
-	brickData->destY = 10.f + (int)floor((gridPos - 1.f) / 11.f) * (h + BRICK_HEIGHT_SPACE_OFFSET);
+	brickData->destY = 0.f + (int)floor((gridPos - 1.f) / 11.f) * (float)(h + BRICK_HEIGHT_SPACE_OFFSET);
 	brickData->flash = 0;
 	brickData->originalX = x;
 	brickData->originalY = y;
@@ -143,33 +103,6 @@ void BRICK_updateSprite(LCDSprite* sprite)
 		PlaydateAPI* pd = getPlaydateAPI();
 
 		animate(sprite);
-
-		//pd->sprite->moveTo(sprite, x + brickData->ox, y + brickData->oy);
-		//float x = 0;
-		//float y = 0;
-		//pd->sprite->getPosition(sprite, &x, &y);
-		//
-		//float actual_x = 0.f;
-		//float actual_y = 0.f;
-		//int len = 0;
-		//
-		//SpriteCollisionInfo* collisions = NULL;
-		//collisions = pd->sprite->checkCollisions(sprite, x, y, &actual_x, &actual_y, &len);
-		//
-		//if (len == 1) 
-		//{
-		//	uint8_t other_tag = pd->sprite->getTag(collisions[0].other);
-		//	if (other_tag == BALL) 
-		//	{
-		//		pd->sprite->removeSprite(sprite);
-		//		brick_destroy(sprite);
-		//	}
-		//}
-		//BrickData* brick_data = (BrickData*)pd->sprite->getUserdata(sprite);
-		//if (brick_data)
-		//{
-		//	
-		//}
 	}
 }
 

@@ -17,6 +17,7 @@ typedef struct BallData
 	bool isStuck;
 	bool isDead;
 	bool rammed;
+	bool isMega;
 	int collisionCount;
 	int timerSlow;
 	int timerMega;
@@ -31,6 +32,7 @@ void BALL_updateSprite(LCDSprite* sprite);
 void BALL_setAngle(LCDSprite* sprite, float angle);
 
 void BALL_spawnTrail(float x, float y, float radius);
+void BALL_spawnMegaTrail(float x, float y, float radius);
 void BALL_spawnPuft(float x, float y);
 
 void BALL_resetBall(LCDSprite* sprite);

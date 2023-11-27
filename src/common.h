@@ -66,6 +66,13 @@ typedef enum
 	FADEIN
 } ETransitionState;
 
+typedef enum
+{
+	SHORT,
+	MEDIUM,
+	LARGE
+} EPaddleSize;
+
 // PlaydateAPI
 void setPlaydateAPI(PlaydateAPI* playdate);
 PlaydateAPI* getPlaydateAPI(void);

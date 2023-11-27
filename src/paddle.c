@@ -1,6 +1,5 @@
 #include "paddle.h"
 
-#include "common.h"
 #include "memory.h"
 #include "particles.h"
 #include "resourcemanager.h"
@@ -23,6 +22,52 @@ void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 	}
 }
 
+void PADDLE_changeSize(LCDSprite* sprite, EPaddleSize newSize)
+{
+	if (sprite)
+	{
+		PlaydateAPI* pd = getPlaydateAPI();
+		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
+		if (paddleData)
+		{
+			char* paddleName = NULL;
+			switch (newSize)
+			{
+			case SHORT:
+				paddleName = "paddle_s";
+				break;
+			case MEDIUM:
+				paddleName = "paddle_m";
+				break;
+			case LARGE:
+				paddleName = "paddle_l";
+				break;
+			default:
+				break;
+			}
+
+			paddleData->currentSize = newSize;
+			pd->sprite->setImage(sprite, RESOURCEMANAGER_getImage(paddleName), kBitmapUnflipped);
+
+			int w, h;
+			pd->graphics->getBitmapData(RESOURCEMANAGER_getImage(paddleName), &w, &h, NULL, NULL, NULL);
+
+			float x, y;
+			pd->sprite->getPosition(sprite, &x, &y);
+
+			// Create bounds rect for paddle
+			PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
+			pd->sprite->setBounds(sprite, bounds);
+
+			// Create collision rect for paddle
+			PDRect cr = PDRectMake(1.f, 1.f, (float)(w - 2), (float)(h - 2));
+			pd->sprite->setCollideRect(sprite, cr);
+
+			pd->sprite->moveTo(sprite, x, y);
+		}
+	}
+}
+
 void PADDLE_reset(LCDSprite* sprite)
 {
 }
@@ -35,10 +80,10 @@ LCDSprite* PADDLE_create(float x, float y)
 	LCDSprite* paddle = pd->sprite->newSprite();
 
 	pd->sprite->setUpdateFunction(paddle, PADDLE_updateSprite);
-	pd->sprite->setImage(paddle, RESOURCEMANAGER_getImage("paddle"), kBitmapUnflipped);
+	pd->sprite->setImage(paddle, RESOURCEMANAGER_getImage("paddle_m"), kBitmapUnflipped);
 
 	int w, h;
-	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage("paddle"), &w, &h, NULL, NULL, NULL);
+	pd->graphics->getBitmapData(RESOURCEMANAGER_getImage("paddle_m"), &w, &h, NULL, NULL, NULL);
 
 	// Create bounds rect for paddle
 	PDRect bounds = PDRectMake(0.f, 0.f, (float)w, (float)h);
@@ -56,10 +101,13 @@ LCDSprite* PADDLE_create(float x, float y)
 	pd->sprite->setTag(paddle, PADDLE);
 
 	// Initialize paddle data
-	PaddleData* paddle_data = pd_malloc(sizeof(PaddleData));
-	paddle_data->dx = 0.f;
-	paddle_data->speedWind = 0;
-	pd->sprite->setUserdata(paddle, (void*)paddle_data);
+	PaddleData* paddleData = pd_malloc(sizeof(PaddleData));
+	paddleData->dx = 0.f;
+	paddleData->speedWind = 0;
+	paddleData->timerExpand = 0;
+	paddleData->timerReduce = 0;
+	paddleData->currentSize = MEDIUM;
+	pd->sprite->setUserdata(paddle, (void*)paddleData);
 
 	return paddle;
 }
@@ -67,8 +115,8 @@ LCDSprite* PADDLE_create(float x, float y)
 void PADDLE_destroy(LCDSprite* sprite)
 {
 	getPlaydateAPI()->sprite->removeSprite(sprite);
-	PaddleData* paddle_data = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
-	pd_free(paddle_data);
+	PaddleData* paddleData = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd_free(paddleData);
 	pd_free(sprite);
 }
 
@@ -77,20 +125,23 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 	if (sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
-		PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
-		if (paddle_data)
+		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
+		if (paddleData)
 		{
-			if (paddle_data->timerExpand > 0) 
+			if (paddleData->timerExpand > 0 && paddleData->currentSize != LARGE)
 			{
-				// TODO: expand pad
+				PADDLE_changeSize(sprite, LARGE);
 			}
-			else if (paddle_data->timerReduce > 0)
+			else if (paddleData->timerReduce > 0 && paddleData->currentSize != SHORT)
 			{
-				//TODO: reduce pad
+				PADDLE_changeSize(sprite, SHORT);
 			}
 			else 
 			{
-				//TODO: original size pad
+				if (paddleData->timerExpand <= 0 && paddleData->timerReduce <= 0 && paddleData->currentSize != MEDIUM)
+				{
+					PADDLE_changeSize(sprite, MEDIUM);
+				}
 			}
 			
 			float pad_x = 0;
@@ -102,21 +153,14 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 			float actual_x = 0;
 			float actual_y = 0;
 			int len = 0;
-			//SpriteCollisionInfo* collisions = NULL;
-			//collisions = pd->sprite->moveWithCollisions(sprite, pad_x + paddle_data->dx, pad_y, &actual_x, &actual_y, &len);
 			float oldPad_x = pad_x;
-			pd->sprite->moveTo(sprite, mid((pad_rect.width * 0.5f), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width * 0.5f))), pad_y);
+			pd->sprite->moveTo(sprite, mid((pad_rect.width * 0.5f), pad_x + paddleData->dx, (pd->display->getWidth() - (pad_rect.width * 0.5f))), pad_y);
 
 			pd->sprite->getPosition(sprite, &pad_x, &pad_y);
 
-			//if(!areEqual(pad_x, oldPad_x))
-			//{
-			//	paddle_data->speedWind = 0;
-			//}
-
-			if(paddle_data->speedWind > 5)
+			if(paddleData->speedWind > 5)
 			{
-				if(paddle_data->dx < 0.0f)
+				if(paddleData->dx < 0.0f)
 				{
 					PADDLE_spawnSpeedLines(sprite, pad_x + (pad_rect.width * 0.5f), pad_y);
 				}
@@ -125,54 +169,16 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 					PADDLE_spawnSpeedLines(sprite, pad_x - (pad_rect.width * 0.5f), pad_y);
 				}
 			}
-			//if (len != 0) 
-			//{
-			//	if (pd->sprite->getTag(collisions[0].other) == BALL) 
-			//	{
-			//		LCDSprite* ball = collisions[0].other;
-			//		if (BALL_isStuck(ball)) 
-			//		{
-			//			//pd->sprite->moveBy(sprite, paddle_data->dx, 0.f);
-			//			pd->sprite->moveTo(ball, mid((pad_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width / 2))), pad_y);
-			//		}
-			//
-			//		if (collisions[0].normal.y == -1) 
-			//		{
-			//			return;
-			//		}
-			//		
-			//		float ball_x = 0;
-			//		float ball_y = 0;
-			//		pd->sprite->getPosition(ball, &ball_x, &ball_y);
-			//		if (ball_y > pad_y - (pad_rect.height / 2) - 3) 
-			//		{
-			//			if (sign(BALL_getDx(ball)) == sign(PADDLE_getDx(sprite)))
-			//			{
-			//				BALL_setDx(ball, BALL_getDx(ball) + PADDLE_getDx(sprite));
-			//			}
-			//			else
-			//			{
-			//				BALL_setDx(ball, -BALL_getDx(ball));
-			//				BALL_setDx(ball, BALL_getDx(ball) + PADDLE_getDx(sprite));
-			//			}
-			//		
-			//			if (ball_x < pad_x)
-			//			{
-			//				pd->sprite->moveTo(ball, pad_x - (pad_rect.width / 2), pad_y);
-			//			}
-			//			else
-			//			{
-			//				pd->sprite->moveTo(ball, pad_x + (pad_rect.width / 2), pad_y);
-			//			}
-			//		
-			//			if (!BALL_rammed(ball))
-			//			{
-			//				BALL_setRammed(ball, true);
-			//			}
-			//		}
-			//	}
-			//}
-			//pd->sprite->moveTo(sprite, mid((pad_rect.width / 2), pad_x + paddle_data->dx, (pd->display->getWidth() - (pad_rect.width / 2))), pad_y);
+
+			// Powerup timers
+			if (paddleData->timerExpand > 0)
+			{
+				paddleData->timerExpand--;
+			}
+			if (paddleData->timerReduce > 0)
+			{
+				paddleData->timerReduce--;
+			}
 		}
 	}
 }
