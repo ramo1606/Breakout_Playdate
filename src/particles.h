@@ -33,12 +33,7 @@ void PARTICLES_update(void);
 void PARTICLES_draw(void);
 void PARTICLES_destroy(void);
 
-void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType type, float maxage, LCDColor color, float s);
+void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType type, float maxage, LCDColor color[], int colorCount, float s);
 void PARTICLES_removeParticle(int index);
 void PARTICLES_removeAllParticles(void);
-
-void PARTICLES_spawnSpeedLines(LCDSprite* sprite, float x, float y);
-void PARTICLES_spawnTrail(float x, float y, float radius);
-void PARTICLES_spawnPuft(float x, float y);
-
 #endif // !PARTICLES_H

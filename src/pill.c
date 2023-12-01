@@ -3,6 +3,9 @@
 #include "memory.h"
 #include "resourcemanager.h"
 #include "gamestate.h"
+#include "raymath.h"
+#include "patterns.h"
+#include "particles.h"
 
 static const EPillType PillTypes[] = {
 	SLOW_DOWN,
@@ -74,6 +77,7 @@ void PILL_updateSprite(LCDSprite* sprite)
 		float actual_y = 0;
 		float x, y = 0.0f;
 		pd->sprite->getPosition(sprite, &x, &y);
+		PDRect pillBounds = pd->sprite->getBounds(sprite);
 
 		SpriteCollisionInfo* collisions = NULL;
 		collisions = pd->sprite->moveWithCollisions(sprite, x, y + 1.4f, &actual_x, &actual_y, &len);
@@ -87,13 +91,12 @@ void PILL_updateSprite(LCDSprite* sprite)
 				{
 					GAMESTATE_getPowerup(collisions[i].sprite);
 					PILL_destroy(sprite);
-					//PILL_spawnPufft(x, y, ball_bounds.width * 0.5f);
+					PILL_spawnPufft(x, y);
 					//sfx();
 				}
 			}
 		}
 
-		PDRect pillBounds = pd->sprite->getBounds(sprite);
 		if (y - pillBounds.height > 240) 
 		{
 			PILL_destroy(sprite);
@@ -137,4 +140,17 @@ char PILL_translateType(EPillType type)
 SpriteCollisionResponseType PILL_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
 	return kCollisionTypeOverlap;
+}
+
+void PILL_spawnPufft(float x, float y) 
+{
+	for (size_t i = 0; i < 20; ++i) 
+	{
+		float ang = randomFloat(0.0f, PI);
+		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
+		float dx = sinf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
+		float dy = cosf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
+		LCDColor colors[5] = { ditheringPatterns[0], ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[6], ditheringPatterns[8] };
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 20.f + randomFloat(0.0f, 15.0f), colors, 5, 2.0f + randomFloat(0.0f, 8.0f));
+	}
 }

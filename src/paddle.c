@@ -17,8 +17,8 @@ void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 		PDRect pad_bounds = pd->sprite->getBounds(sprite);
 		float ox = randomFloat(0.0f, 1.0f) * 2.5f;
 		float oy = randomFloat(0.0f, 1.0f) * pad_bounds.height;
-
-		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, paddle_data->dx, 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), kColorBlack, 6.f + randomFloat(0.0f, 10.0f));
+		LCDColor colors[1] = { kColorBlack };
+		PARTICLES_addParticle(x + ox, (y - pad_bounds.height * 0.5f) + oy, paddle_data->dx, 0.f, SPEED_LINE, 10.f + randomFloat(0.0f, 15.0f), colors, 1, 6.f + randomFloat(0.0f, 10.0f));
 	}
 }
 

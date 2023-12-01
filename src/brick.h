@@ -28,6 +28,8 @@ void BRICK_updateSprite(LCDSprite* sprite);
 
 EBrickType BRICK_translateType(char type);
 
+void BRICK_spawnExplosion(float x, float y);
+
 SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other);
 
 #endif

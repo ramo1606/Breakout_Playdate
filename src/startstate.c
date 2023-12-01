@@ -65,12 +65,14 @@ void spawnBackgroundParticles(bool top, uint64_t timer)
 
             if ((i + state->particleRow) % 2 == 0)
             {
-                PARTICLES_addParticle(i * 40.0f, y, 0.0f, 0.4f, STATIC_PIX, 10000.0f, kColorBlack, 0);
+                LCDColor colors[1] = { kColorBlack };
+                PARTICLES_addParticle(i * 40.0f, y, 0.0f, 0.4f, STATIC_PIX, 10000.0f, colors, 1, 0);
             }
             else 
             {
                 //TODO Add random particle sprite
-                PARTICLES_addParticle((i * 40.0f) - 20.0f, y - 20.0f, 0.0f, 0.4f, BLUE_ROTATING_SPRITE, 10000.0f, kColorBlack, 0);
+                LCDColor colors[1] = { kColorBlack };
+                PARTICLES_addParticle((i * 40.0f) - 20.0f, y - 20.0f, 0.0f, 0.4f, BLUE_ROTATING_SPRITE, 10000.0f, colors, 1, 0);
             }
         }
     }
@@ -88,7 +90,8 @@ void spawnBackgroundParticles(bool top, uint64_t timer)
 
         for (size_t i = 0; i < 10; ++i)
         {
-            PARTICLES_addParticle(20 + (i * 40.0f), y, 0.0f, 0.8f, STATIC_PIX, 10000.0f, kColorBlack, 0);
+            LCDColor colors[1] = { kColorBlack };
+            PARTICLES_addParticle(20 + (i * 40.0f), y, 0.0f, 0.8f, STATIC_PIX, 10000.0f, colors, 1, 0);
         }
     }
 }

@@ -21,6 +21,8 @@ struct Particle
 	float maxAge;
 	float age;
 	LCDColor color;
+	LCDColor colors[10];
+	int colorsCount;
 	int rotation;
 	float rotationTimer;
 	float s;
@@ -54,6 +56,17 @@ void PARTICLES_update(void)
 		else 
 		{
 			//Change color
+			if (particle->colorsCount == 1) 
+			{
+				particle->color = particle->colors[0];
+			}
+			else 
+			{
+				float colorIndex = particle->age / particle->maxAge;
+				colorIndex = 1 + floorf(colorIndex * particle->colorsCount);
+				particle->color = particle->colors[(int)colorIndex];
+			}
+
 
 			// Apply gravity
 			if (particle->type == GRAVITY_PIX || particle->type == ROTATING_SPRITE)
@@ -164,7 +177,7 @@ void PARTICLES_destroy(void)
 	DestroyObjPool(&particlesPool);
 }
 
-void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType type, float maxage, LCDColor color, float s)
+void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType type, float maxage, LCDColor colors[], int colorsCount, float s)
 {
 	Particle* newPart = ObjPoolAlloc(&particlesPool);
 	if (newPart)
@@ -176,11 +189,17 @@ void PARTICLES_addParticle(float x, float y, float dx, float dy, EParticleType t
 		newPart->type = type;
 		newPart->age = 0.f;
 		newPart->maxAge = maxage;
-		newPart->color = color;
+		newPart->color = colors[0];
+		newPart->colorsCount = colorsCount;
 		newPart->s = s;
 		newPart->rotation = 0;
 		newPart->rotationTimer = 0;
 		newPart->os = s;
+
+		for (int i = 0; i < colorsCount; i++) 
+		{
+			newPart->colors[i] = colors[i];
+		}
 
 		da_push(particles, newPart);
 	}

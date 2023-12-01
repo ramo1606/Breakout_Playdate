@@ -34,6 +34,7 @@ void BALL_setAngle(LCDSprite* sprite, float angle);
 void BALL_spawnTrail(float x, float y, float radius);
 void BALL_spawnMegaTrail(float x, float y, float radius);
 void BALL_spawnPuft(float x, float y);
+void BALL_spawnDeath(float x, float y);
 
 void BALL_resetBall(LCDSprite* sprite);
 

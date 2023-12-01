@@ -17,6 +17,8 @@ void PILL_updateSprite(LCDSprite* sprite);
 
 char PILL_translateType(EPillType type);
 
+void PILL_spawnPufft(float x, float y);
+
 SpriteCollisionResponseType PILL_collisionResponse(LCDSprite* sprite, LCDSprite* other);
 
 #endif
