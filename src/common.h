@@ -45,7 +45,8 @@ typedef enum
 	HARDENED,
 	SPLODING,
 	POWER,
-	ZZ
+	ZZ,
+	Z
 } EBrickType;
 
 typedef enum

@@ -146,10 +146,9 @@ void PILL_spawnPufft(float x, float y)
 {
 	for (size_t i = 0; i < 20; ++i) 
 	{
-		float ang = randomFloat(0.0f, PI);
-		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-		float dx = sinf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
-		float dy = cosf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float dx = sinf(ang) * (1.f + randomFloat(0.0f, 2.0f));
+		float dy = cosf(ang) * (1.f + randomFloat(0.0f, 2.0f));
 		LCDColor colors[5] = { ditheringPatterns[0], ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[6], ditheringPatterns[8] };
 		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 20.f + randomFloat(0.0f, 15.0f), colors, 5, 2.0f + randomFloat(0.0f, 8.0f));
 	}

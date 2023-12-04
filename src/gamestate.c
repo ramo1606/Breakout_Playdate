@@ -523,8 +523,8 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
 	pd->graphics->setBackgroundColor(kColorClear);
 
-	pd->sprite->updateAndDrawSprites();
 	PARTICLES_draw();
+	pd->sprite->updateAndDrawSprites();
 
     return 0;
 }

@@ -3,6 +3,8 @@
 #include "rmem.h"
 #include "raymath.h"
 #include "utils.h"
+#include "patterns.h"
+#include "particles.h"
 #include "resourcemanager.h"
 #include "engine.h"
 #include "easing.h"
@@ -28,6 +30,31 @@ void animate(LCDSprite* sprite)
 		pd->sprite->moveTo(sprite, brickData->originalX, newY);
 		float deltaTime = ENGINE_deltaTime();
 		brickData->animationElapsedTime = brickData->animationElapsedTime + deltaTime;
+	}
+}
+
+void checkExplosion(LCDSprite* sprite)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
+	if (brickData->type == ZZ && pd->sprite->isVisible(sprite) == true)
+	{
+		brickData->type = Z;
+	}
+
+	if (brickData->type == Z && pd->sprite->isVisible(sprite) == true)
+	{
+		float x, y = 0.f;
+		pd->sprite->getPosition(sprite, &x, &y);
+		//explodeBrick();
+		BRICK_spawnExplosion(x, y);
+		//shake();
+	}
+
+	if (brickData->type == ZZ)
+	{
+		brickData->type = Z;
 	}
 }
 
@@ -102,6 +129,7 @@ void BRICK_updateSprite(LCDSprite* sprite)
 	{
 		PlaydateAPI* pd = getPlaydateAPI();
 
+		checkExplosion(sprite);
 		animate(sprite);
 	}
 }
@@ -139,13 +167,31 @@ SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite
 
 void BRICK_spawnExplosion(float x, float y)
 {
-	//for (size_t i = 0; i < 20; ++i)
-	//{
-	//	float ang = randomFloat(0.0f, PI);
-	//	float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-	//	float dx = sinf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
-	//	float dy = cosf(ang) * (1 + randomFloat(0.0f, 2.0f)) * sign;
-	//	LCDColor colors[5] = { ditheringPatterns[0], ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[6], ditheringPatterns[8] };
-	//	PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 20.f + randomFloat(0.0f, 15.0f), colors, 5, 2.0f + randomFloat(0.0f, 8.0f));
-	//}
+	for (size_t i = 0; i < 20; ++i)
+	{
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float dx = sinf(ang) * randomFloat(0.0f, 8.0f);
+		float dy = cosf(ang) * randomFloat(0.0f, 8.0f);
+		LCDColor colors[5] = { ditheringPatterns[10], ditheringPatterns[10], ditheringPatterns[6], ditheringPatterns[6], ditheringPatterns[4] };
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 80.f + randomFloat(0.0f, 15.0f), colors, 5, 3.0f + randomFloat(0.0f, 8.0f));
+	}
+
+	for (size_t i = 0; i < 30; ++i)
+	{
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float dx = sinf(ang) * 1.f + randomFloat(0.0f, 6.0f);
+		float dy = cosf(ang) * 1.f + randomFloat(0.0f, 6.0f);
+		LCDColor colors[5] = { ditheringPatterns[4], ditheringPatterns[1], ditheringPatterns[2], ditheringPatterns[3], ditheringPatterns[8] };
+		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 30.f + randomFloat(0.0f, 15.0f), colors, 5, 4.0f + randomFloat(0.0f, 8.0f));
+	}
+}
+
+void explodeBrick(LCDSprite* sprite)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
+
+	pd->sprite->setVisible(sprite, false);
+	//pd->sprite->
 }

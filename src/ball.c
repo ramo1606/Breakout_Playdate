@@ -474,10 +474,9 @@ void BALL_spawnMegaTrail(float x, float y, float radius)
 {
 	if (randomFloat(0.0f, 1.0f) < 0.7f)
 	{
-		float ang = randomFloat(0.0f, PI);
-		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-		float ox = sinf(ang) * radius * 0.15f * sign;
-		float oy = cosf(ang) * radius * 0.15f * sign;
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float ox = sinf(ang) * radius * 0.15f;
+		float oy = cosf(ang) * radius * 0.15f;
 		LCDColor colors[3] = { ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[8] };
 		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, SMOKE_BALL, 60.f + randomFloat(0.0f, 15.0f), colors, 3, 8.f + randomFloat(0.0f, 2.0f));
 	}
@@ -487,10 +486,9 @@ void BALL_spawnTrail(float x, float y, float radius)
 {
 	if (randomFloat(0.0f, 1.0f) < 0.8f)
 	{
-		float ang = randomFloat(0.0f, PI);
-		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-		float ox = sinf(ang) * radius * 0.15f * sign;
-		float oy = cosf(ang) * radius * 0.15f * sign;
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float ox = sinf(ang) * radius * 0.15f;
+		float oy = cosf(ang) * radius * 0.15f;
 		LCDColor colors[1] = { kColorBlack };
 		PARTICLES_addParticle(x + ox, y + oy, 0.0f, 0.0f, STATIC_PIX, 15 + randomFloat(0.0f, 15.0f), colors, 1, 0.0f);
 	}
@@ -498,11 +496,10 @@ void BALL_spawnTrail(float x, float y, float radius)
 
 void BALL_spawnPuft(float x, float y)
 {
-	for (int i = 0; i < 5; i++)
+	for (size_t i = 0; i < 5; i++)
 	{
-		float ang = randomFloat(0.0f, PI);
-		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-		float dx = sinf(ang) * 3.0f * sign;
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float dx = sinf(ang) * 3.0f;
 		float dy = cosf(ang) * 3.0f;
 		LCDColor colors[3] = { ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[8] };
 		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 15.0f + randomFloat(0.0f, 15.0f), colors, 3, 4 + randomFloat(0.0f, 6.0f));
@@ -511,12 +508,11 @@ void BALL_spawnPuft(float x, float y)
 
 void BALL_spawnDeath(float x, float y)
 {
-	for (int i = 0; i < 30; ++i) 
+	for (size_t i = 0; i < 30; ++i)
 	{
-		float ang = randomFloat(0.0f, PI);
-		float sign = ang <= (PI * 0.5f) ? -1.f : 1.f;
-		float dx = sinf(ang) * (4.f + randomFloat(0.f, 6.f)) * sign;
-		float dy = cosf(ang) * (4.f + randomFloat(0.f, 6.f)) * sign;
+		float ang = randomFloat(0.0f, PI * 2.f);
+		float dx = sinf(ang) * (4.f + randomFloat(0.f, 6.f));
+		float dy = cosf(ang) * (4.f + randomFloat(0.f, 6.f));
 		LCDColor colors[6] = { ditheringPatterns[2], ditheringPatterns[4], ditheringPatterns[4], ditheringPatterns[8], ditheringPatterns[10], ditheringPatterns[10] };
 		PARTICLES_addParticle(x, y, dx, dy, SMOKE_BALL, 80 + randomFloat(0.0f, 15.0f), colors, 6, 6 + randomFloat(0.0f, 10.0f));
 	}
