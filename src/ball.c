@@ -4,6 +4,7 @@
 #include "memory.h"
 #include "resourcemanager.h"
 #include "particles.h"
+#include "cameraShake.h"
 
 #include "gamestate.h"
 #include "brick.h"
@@ -334,6 +335,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		{
 			ballData->isDead = true;
 			BALL_spawnDeath(collision->touch.x, collision->touch.y);
+			setShake(getShake() + 0.4f);
 		}
 		else
 		{

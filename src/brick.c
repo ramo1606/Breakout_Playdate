@@ -4,6 +4,7 @@
 #include "raymath.h"
 #include "utils.h"
 #include "patterns.h"
+#include "cameraShake.h"
 #include "particles.h"
 #include "resourcemanager.h"
 #include "engine.h"
@@ -49,7 +50,10 @@ void checkExplosion(LCDSprite* sprite)
 		pd->sprite->getPosition(sprite, &x, &y);
 		//explodeBrick();
 		BRICK_spawnExplosion(x, y);
-		//shake();
+		if (getShake() < 0.4f) 
+		{
+			setShake(getShake() + 0.1f);
+		}
 	}
 
 	if (brickData->type == ZZ)
@@ -186,6 +190,62 @@ void BRICK_spawnExplosion(float x, float y)
 	}
 }
 
+void BRICK_shatterBrick(LCDSprite* sprite, float vx, float vy)
+{
+	PlaydateAPI* pd = getPlaydateAPI();
+
+	if (getShake() < 0.5f) 
+	{
+		setShake(getShake() + 0.07f);
+	}
+
+	//sfx();
+
+	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
+	if (brickData) 
+	{
+		brickData->dx = vx * 1.0f;
+		brickData->dy = vy * 1.0f;
+	}
+	
+	int width, height;
+	pd->graphics->getBitmapData(pd->sprite->getImage(sprite), &width, &height, NULL, NULL, NULL);
+
+	float posX, posY;
+	pd->sprite->getPosition(sprite, &posX, &posY);
+
+	for (int x = 0; x < width; ++x) 
+	{
+		for (int y = 0; y < height; ++y) 
+		{
+			if (randomFloat(0.0f, 1.0f) < 0.5f)
+			{
+				float ang = randomFloat(0.0f, PI * 2.f);
+				float dx = sinf(ang) * randomFloat(0.f, 2.f) + vx * 0.5f;
+				float dy = cosf(ang) * randomFloat(0.f, 2.f) + vy * 0.5f;
+
+				LCDColor colors[1] = { ditheringPatterns[0] };
+				PARTICLES_addParticle(posX + x, posY + y , dx, dy, GRAVITY_PIX, 80.0f, colors, 1, 0);
+			}
+		}
+	}
+	
+	int chunks = 1 + randomInt(0, 10);
+	if (chunks > 0) 
+	{
+		for (int i = 0; i < chunks; ++i) 
+		{
+			float ang = randomFloat(0.0f, PI * 2.f);
+			float dx = sinf(ang) * randomFloat(0.f, 2.f) + vx * 0.5f;
+			float dy = cosf(ang) * randomFloat(0.f, 2.f) + vy * 0.5f;
+
+			//Use sprite instead of
+			LCDColor colors[1] = { ditheringPatterns[2] };
+			PARTICLES_addParticle(posX, posY, dx, dy, ROTATING_SPRITE, 80.0f, colors, 0, 0);
+		}
+	}
+}
+
 void explodeBrick(LCDSprite* sprite)
 {
 	PlaydateAPI* pd = getPlaydateAPI();
@@ -194,4 +254,15 @@ void explodeBrick(LCDSprite* sprite)
 
 	pd->sprite->setVisible(sprite, false);
 	//pd->sprite->
+
+	//bricks[_i].v = false
+	//	for j = 1, #bricks do
+	//		if j != _i
+	//			and bricks[j].v
+	//			and abs(bricks[j].x - bricks[_i].x) <= (brick_w + 2)
+	//			and abs(bricks[j].y - bricks[_i].y) <= (brick_h + 2)
+	//			then
+	//			hitbrick(bricks[j], false)
+	//			end
+	//			end
 }

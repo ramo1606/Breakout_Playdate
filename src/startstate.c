@@ -167,7 +167,6 @@ unsigned int STARTSTATE_update(float deltaTime)
     // Raining particles
     state->particlesTimer += 1;
     spawnBackgroundParticles(true, state->particlesTimer);
-    PARTICLES_update();
 
     // HighScore
 
@@ -196,9 +195,6 @@ unsigned int STARTSTATE_draw(float deltaTime)
 {
     PlaydateAPI* pd = getPlaydateAPI();
     pd->graphics->setBackgroundColor(kColorClear);
-
-    // Particles
-    PARTICLES_draw();
 
     // Draw Logo
     int textWidth = pd->graphics->getTextWidth(font, "Press A to start", 17, kASCIIEncoding, pd->graphics->getTextTracking());

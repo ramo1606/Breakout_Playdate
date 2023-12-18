@@ -5,8 +5,8 @@
 
 typedef struct TransitionManager TransitionManager;
 
-void TRANSITION_MANAGER_fadeOut(EMode nextState);
-void TRANSITION_MANAGER_fadeIn(void);
+void TRANSITION_MANAGER_fadeOut(void);
+void TRANSITION_MANAGER_fadeIn(EMode nextState);
 unsigned int TRANSITION_MANAGER_init(void);
 unsigned int TRANSITION_MANAGER_update(State* state);
 unsigned int TRANSITION_MANAGER_draw();

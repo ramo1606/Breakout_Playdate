@@ -10,6 +10,8 @@
 #include "logostate.h"
 #include "startstate.h"
 #include "gamestate.h"
+#include "cameraShake.h"
+#include "particles.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -140,11 +142,15 @@ int ENGINE_update(void)
 	deltaTime = getPlaydateAPI()->system->getElapsedTime();
 	getPlaydateAPI()->system->resetElapsedTime();
 
+	PARTICLES_update();
+	doShake();
+
 	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
 	STATEMANAGER_update(engine.stateManager, deltaTime);
 
 	TRANSITION_MANAGER_draw();
 	STATEMANAGER_draw(engine.stateManager, deltaTime);
+	PARTICLES_draw();
 
 	return 1;
 }

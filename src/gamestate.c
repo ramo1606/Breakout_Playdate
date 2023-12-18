@@ -136,9 +136,11 @@ void GAMESTATE_getPowerup(LCDSprite* pill)
 				//showSash("Extra Life!", 7, 6);
 				break;
 			case STICKY:
+			{
 				bool hasStuck = false;
 				//TODO: logick for sticky paddle
 				break;
+			}
 			case EXPAND:
 				paddleData->timerExpand = 600;
 				paddleData->timerReduce = 0;
@@ -513,8 +515,6 @@ unsigned int GAMESTATE_update(float deltaTime)
 		}
 	}
 
-	PARTICLES_update();
-
     return 0;
 }
 
@@ -523,7 +523,6 @@ unsigned int GAMESTATE_draw(float deltaTime)
 	PlaydateAPI* pd = getPlaydateAPI();
 	pd->graphics->setBackgroundColor(kColorClear);
 
-	PARTICLES_draw();
 	pd->sprite->updateAndDrawSprites();
 
     return 0;
@@ -584,7 +583,7 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 
 			// Splosion brick
 			// TODO: sfx(2 + chain);
-			// TODO: BRICK_shatter();
+			BRICK_shatterBrick(collision->other, ballData->lastHitDx, ballData->lastHitDy);
 			brickData->type = ZZ;
 
 			if (collision->other == state->suddenDeathBrick) 
@@ -609,7 +608,7 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 
 			// Regular brick
 			// TODO: sfx(2 + chain);
-			// TODO: BRICK_shatter();
+			BRICK_shatterBrick(collision->other, ballData->lastHitDx, ballData->lastHitDy);
 			brickData->flash = flashTime;
 			brickData->visible = false;
 
@@ -631,7 +630,7 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 			if (ballData->timerMega > 0) 
 			{
 				//sfx();
-				//BRICK_shatter();
+				BRICK_shatterBrick(collision->other, ballData->lastHitDx, ballData->lastHitDy);
 				brickData->flash = flashTime;
 				brickData->visible = false;
 
@@ -662,7 +661,7 @@ void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo)
 			ballData->infiniteCounter = 0;
 
 			//sfx();
-			//BRICK_shatter();
+			BRICK_shatterBrick(collision->other, ballData->lastHitDx, ballData->lastHitDy);
 			brickData->flash = flashTime;
 			brickData->visible = false;
 
