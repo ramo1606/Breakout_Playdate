@@ -7,8 +7,8 @@ void doShake()
 {
 	PlaydateAPI* pd = getPlaydateAPI();
 
-	int shakeX = 32 - randomInt(0, 64);
-	int shakeY = 32 - randomInt(0, 64);
+	int shakeX = 42 - randomInt(0, 84);
+	int shakeY = 42 - randomInt(0, 84);
 
 	pd->graphics->setDrawOffset(shakeX * shake, shakeY * shake);
 

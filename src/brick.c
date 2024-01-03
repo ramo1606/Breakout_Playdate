@@ -218,7 +218,7 @@ void BRICK_shatterBrick(LCDSprite* sprite, float vx, float vy)
 	{
 		for (int y = 0; y < height; ++y) 
 		{
-			if (randomFloat(0.0f, 1.0f) < 0.5f)
+			if (randomFloat(0.0f, 1.0f) < 0.1f)
 			{
 				float ang = randomFloat(0.0f, PI * 2.f);
 				float dx = sinf(ang) * randomFloat(0.f, 2.f) + vx * 0.5f;
@@ -230,7 +230,7 @@ void BRICK_shatterBrick(LCDSprite* sprite, float vx, float vy)
 		}
 	}
 	
-	int chunks = 1 + randomInt(0, 10);
+	int chunks = 1 + randomInt(0, 8);
 	if (chunks > 0) 
 	{
 		for (int i = 0; i < chunks; ++i) 

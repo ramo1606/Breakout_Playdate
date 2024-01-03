@@ -311,7 +311,6 @@ bool levelFinished()
 
 	bool returnValue = false;
 
-	//int bricksSize = sizeof(state->bricks)/sizeof(state->bricks[0]);
 	if (da_count(state->bricks) == 0)
 	{
 		return true;
@@ -501,18 +500,6 @@ unsigned int GAMESTATE_update(float deltaTime)
 	{
 		PDRect ballRect = pd->sprite->getCollideRect(state->ball);
 		pd->sprite->moveTo(state->ball, pad_x, pad_y - ballRect.height);
-	}
-
-	if (!FloatEquals(paddleData->dx, 0.f))
-	{
-		if (paddleData->dx > 0.f)
-		{
-			//spawnSpeedLines(pad_x - ((pad_bounds.width * 0.5f) - 2.5f), pad_y);
-		}
-		else
-		{
-			//spawnSpeedLines(pad_x + (pad_bounds.width * 0.5f) + 2.5f, pad_y);
-		}
 	}
 
     return 0;

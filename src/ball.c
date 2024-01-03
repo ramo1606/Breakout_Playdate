@@ -17,7 +17,7 @@
 static const float MAX_COLLISIONS_COUNT = 600.0f;
 static const float BALL_DX = 1.f;
 static const float BALL_DY = 1.f;
-static const float BALL_SPEED = 2.5f;
+static const float BALL_SPEED = 3.5f;
 static const float BALL_ANGLE = 1.f;
 
 void checkInfinite(LCDSprite* ball) 

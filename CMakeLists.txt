@@ -55,3 +55,4 @@ endif()
 
 include(${SDK}/C_API/buildsupport/playdate_game.cmake)
 
+#cmake .. -G "NMake Makefiles" --toolchain=C:/Users/Ramo/Documents/PlaydateSDK/C_API/buildsupport/arm.cmake -DCMAKE_BUILD_TYPE=Release
