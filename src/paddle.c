@@ -9,7 +9,6 @@
 
 void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
 	PaddleData* paddle_data = (PaddleData*)pd->sprite->getUserdata(sprite);
 
 	if (randomFloat(0.0f, 1.0f) < 0.2f)
@@ -26,7 +25,6 @@ void PADDLE_changeSize(LCDSprite* sprite, EPaddleSize newSize)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
 		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddleData)
 		{
@@ -74,8 +72,6 @@ void PADDLE_reset(LCDSprite* sprite)
 
 LCDSprite* PADDLE_create(float x, float y)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	// Create new sprite
 	LCDSprite* paddle = pd->sprite->newSprite();
 
@@ -114,8 +110,8 @@ LCDSprite* PADDLE_create(float x, float y)
 
 void PADDLE_destroy(LCDSprite* sprite)
 {
-	getPlaydateAPI()->sprite->removeSprite(sprite);
-	PaddleData* paddleData = (PaddleData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd->sprite->removeSprite(sprite);
+	PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
 	pd_free(paddleData);
 	pd_free(sprite);
 }
@@ -124,7 +120,6 @@ void PADDLE_updateSprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
 		PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
 		if (paddleData)
 		{

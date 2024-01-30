@@ -9,7 +9,6 @@
 #include "gamestate.h"
 #include "brick.h"
 #include "paddle.h"
-#include "patterns.h"
 #include "raymath.h"
 
 #include <stdlib.h>
@@ -22,7 +21,7 @@ static const float BALL_ANGLE = 1.f;
 
 void checkInfinite(LCDSprite* ball) 
 {
-	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(ball);
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(ball);
 	if (ballData->infiniteCounter > MAX_COLLISIONS_COUNT)
 	{
 		ballData->infiniteCounter = 0;
@@ -40,7 +39,6 @@ void BALL_megaBall(LCDSprite* sprite, bool isMega)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
 		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 		if (ballData)
 		{
@@ -78,8 +76,6 @@ void BALL_megaBall(LCDSprite* sprite, bool isMega)
 
 LCDSprite* BALL_create(float x, float y)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	LCDSprite* ball = pd->sprite->newSprite();
 
 	pd->sprite->setUpdateFunction(ball, BALL_updateSprite);
@@ -127,8 +123,8 @@ LCDSprite* BALL_create(float x, float y)
 
 void BALL_destroy(LCDSprite* sprite)
 {
-	getPlaydateAPI()->sprite->removeSprite(sprite);
-	BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd->sprite->removeSprite(sprite);
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 	pd_free(ballData);
 	pd_free(sprite);
 }
@@ -149,7 +145,6 @@ void BALL_updateSprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
 		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 		PDRect ball_bounds = pd->sprite->getBounds(sprite);
 
@@ -179,13 +174,13 @@ void BALL_updateSprite(LCDSprite* sprite)
 			float pad_y = 0;
 			pd->sprite->getPosition(paddle, &pad_x, &pad_y);
 			PDRect pad_bounds = pd->sprite->getBounds(paddle);
-			pd->sprite->moveTo(sprite, pad_x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5));
+			pd->sprite->moveTo(sprite, pad_x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5f));
 			ballData->infiniteCounter = 0.f;
 		}
 		else 
 		{
-			float x = 0;
-			float y = 0;
+			float x = 0.0f;
+			float y = 0.0f;
 			pd->sprite->getPosition(sprite, &x, &y);
 
 			float speedModifier = 1.0f;
@@ -259,7 +254,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 
 SpriteCollisionResponseType BALL_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
-	if (getPlaydateAPI()->sprite->getTag(other) == PILL) 
+	if (pd->sprite->getTag(other) == PILL) 
 	{
 		return kCollisionTypeOverlap;
 	}
@@ -273,7 +268,7 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 {
 	if (sprite)
     {
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 		if (ballData)
 		{
 			ballData->angle = angle;
@@ -304,7 +299,7 @@ void BALL_megaballSmash(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		BallData* ballData = (BallData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 		if (ballData)
 		{
 			if (ballData->timerMegaWait > 0) 
@@ -319,7 +314,6 @@ void BALL_megaballSmash(LCDSprite* sprite)
 
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
 	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
 
 	// Move the ball to collision position and add collision to collisionCount
@@ -335,7 +329,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		{
 			ballData->isDead = true;
 			BALL_spawnDeath(collision->touch.x, collision->touch.y);
-			setShake(getShake() + 0.4f);
+			SHAKE_set(SHAKE_get() + 0.4f);
 		}
 		else
 		{

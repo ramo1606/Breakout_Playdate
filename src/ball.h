@@ -1,10 +1,7 @@
 #ifndef BALL_H
 #define BALL_H
 
-#include "pd_api.h"
 #include "common.h"
-
-#include <stdbool.h>
 
 typedef struct BallData
 {

@@ -1,11 +1,5 @@
 #include "memory.h"
-
-static PlaydateAPI* pd = NULL;
-
-void MEMORY_initializeMemoryTools(PlaydateAPI* playdate)
-{
-    pd = playdate;
-}
+#include "common.h"
 
 void* pd_realloc(void* ptr, size_t size)
 {

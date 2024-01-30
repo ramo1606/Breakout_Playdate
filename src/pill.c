@@ -4,8 +4,9 @@
 #include "resourcemanager.h"
 #include "gamestate.h"
 #include "raymath.h"
-#include "patterns.h"
 #include "particles.h"
+
+#define PILLS_NUMBER 7
 
 static const EPillType PillTypes[] = {
 	SLOW_DOWN,
@@ -19,8 +20,6 @@ static const EPillType PillTypes[] = {
 
 LCDSprite* PILL_create(float x, float y)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	LCDSprite* pill = pd->sprite->newSprite();
 
 	// Initialize paddle data
@@ -31,7 +30,7 @@ LCDSprite* PILL_create(float x, float y)
 
 	// Set bitmap
 	char* pillName = NULL; // temporary string
-	getPlaydateAPI()->system->formatString(&pillName, "pill_%c", PILL_translateType(pillData->type));
+	pd->system->formatString(&pillName, "pill_%c", PILL_translateType(pillData->type));
 	pd->sprite->setImage(pill, RESOURCEMANAGER_getImage(pillName), kBitmapUnflipped);
 	int w, h;
 	pd->graphics->getBitmapData(pd->sprite->getImage(pill), &w, &h, NULL, NULL, NULL);
@@ -59,8 +58,8 @@ void PILL_destroy(LCDSprite* sprite)
 {
 	if (sprite) 
 	{
-		getPlaydateAPI()->sprite->removeSprite(sprite);
-		PillData* pillData = (PillData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		pd->sprite->removeSprite(sprite);
+		PillData* pillData = (PillData*)pd->sprite->getUserdata(sprite);
 		pd_free(pillData);
 		pd_free(sprite);
 	}
@@ -70,7 +69,6 @@ void PILL_updateSprite(LCDSprite* sprite)
 {
 	if (sprite) 
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
 		// Move the ball and check for collisions
 		int len = 0;
 		float actual_x = 0;
@@ -108,7 +106,7 @@ EPillType PILL_getType(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PillData* pillData = (PillData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+		PillData* pillData = (PillData*)pd->sprite->getUserdata(sprite);
 		if (pillData)
 		{
 			return pillData->type;

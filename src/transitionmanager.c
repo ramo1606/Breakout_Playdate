@@ -1,113 +1,165 @@
 #include "transitionmanager.h"
-#include "memory.h"
-#include "patterns.h"
+#include "common.h"
 
-#include "pd_api.h"
+// States
+#include "logostate.h"
+#include "startstate.h"
+#include "gamestate.h"
+#include "gameoverstate.h"
+#include "leveloverstate.h"
+#include "winnerstate.h"
 
-#include <stdbool.h>
-
-struct TransitionManager
-{
-    ETransitionState transitState;
-    LCDBitmap* fadeBitmap;
-    int counter;
-    bool changeReady;
-    int ditheringIndex;
-    EMode selectedNextMenu;
-};
-
-static TransitionManager* transitionManager = NULL;
+ETransitionState transitState;
+LCDBitmap* fadeBitmap;
+int counter;
+bool changeReady;
+int ditheringIndex;
+EMode selectedNextMenu;
 
 void TRANSITION_MANAGER_fadeIn(EMode nextState)
 {
-    if (transitionManager->transitState == REST)
+    if (transitState == REST)
     {
-        transitionManager->transitState = FADEIN;
-        transitionManager->counter = 0;
-        transitionManager->selectedNextMenu = nextState;
+        transitState = FADEIN;
+        counter = 0;
+        selectedNextMenu = nextState;
     }
 }
 
 void TRANSITION_MANAGER_fadeOut(void)
 {
-    transitionManager->changeReady = false;
-    transitionManager->transitState = FADEOUT;
-    transitionManager->counter = 0;
+    changeReady = false;
+    transitState = FADEOUT;
+    counter = 0;
 }
 
 unsigned int TRANSITION_MANAGER_init(void)
 {
-    PlaydateAPI* pd = getPlaydateAPI();
+    transitState = REST;
+    counter = 0;
+    changeReady = false;
+    ditheringIndex = 16;
+    fadeBitmap = pd->graphics->newBitmap(400, 240, ditheringPatterns[ditheringIndex]);
+    selectedNextMenu = BLANK;
 
-    transitionManager = pd_malloc(sizeof(TransitionManager));
-    transitionManager->transitState = REST;
-    transitionManager->counter = 0;
-    transitionManager->changeReady = false;
-    transitionManager->ditheringIndex = 16;
-    transitionManager->fadeBitmap = pd->graphics->newBitmap(400, 240, ditheringPatterns[transitionManager->ditheringIndex]);
-    transitionManager->selectedNextMenu = BLANK;
+    return 0;
 }
 
-unsigned int TRANSITION_MANAGER_update(State* state)
+unsigned int TRANSITION_MANAGER_exitState(void) 
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-
-    if (transitionManager->changeReady)
+    switch (mode)
     {
-        state->setNextState(transitionManager->selectedNextMenu);
+    case LOGO:
+        LOGOSTATE_destroy();
+        break;
+    case START:
+        STARTSTATE_destroy();
+        break;
+    case GAME:
+        GAMESTATE_destroy();
+        break;
+    case GAME_OVER:
+        GAMEOVERSTATE_destroy();
+        break;
+    case LEVEL_OVER:
+        LEVELOVERSTATE_destroy();
+        break;
+    case WINNER:
+        WINNERSTATE_destroy();
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+unsigned int TRANSITION_MANAGER_initState(void)
+{
+    switch (mode)
+    {
+    case LOGO:
+        LOGOSTATE_init();
+        break;
+    case START:
+        STARTSTATE_init();
+        break;
+    case GAME:
+        GAMESTATE_init();
+        break;
+    case GAME_OVER:
+        GAMEOVERSTATE_init();
+        break;
+    case LEVEL_OVER:
+        LEVELOVERSTATE_init();
+        break;
+    case WINNER:
+        WINNERSTATE_init();
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+unsigned int TRANSITION_MANAGER_update(float deltaTime)
+{
+    if (changeReady)
+    {
+        TRANSITION_MANAGER_exitState();
+        mode = selectedNextMenu;
+        TRANSITION_MANAGER_initState();
         TRANSITION_MANAGER_fadeOut();
     }
 
-    if (transitionManager->transitState == FADEIN)
+    if (transitState == FADEIN)
     {
-        if ((transitionManager->counter % 2) == 0)
+        if ((counter % 2) == 0)
         {
-            pd->graphics->clearBitmap(transitionManager->fadeBitmap, ditheringPatterns[transitionManager->ditheringIndex]);
+            pd->graphics->clearBitmap(fadeBitmap, ditheringPatterns[ditheringIndex]);
             
-            if (transitionManager->ditheringIndex != 0)
+            if (ditheringIndex != 0)
             {
-                transitionManager->ditheringIndex--;
+                ditheringIndex--;
             }
             else
             {
-                transitionManager->changeReady = true;
+                changeReady = true;
             }
         }
     }
-    else if (transitionManager->transitState == FADEOUT)
+    else if (transitState == FADEOUT)
     {
-        if ((transitionManager->counter % 4) == 0)
+        if ((counter % 4) == 0)
         {
-            pd->graphics->clearBitmap(transitionManager->fadeBitmap, ditheringPatterns[transitionManager->ditheringIndex]);
+            pd->graphics->clearBitmap(fadeBitmap, ditheringPatterns[ditheringIndex]);
             
-            if (transitionManager->ditheringIndex != 16)
+            if (ditheringIndex != 16)
             {
-                transitionManager->ditheringIndex++;
+                ditheringIndex++;
             }
             else
             {
-                transitionManager->transitState = REST;
-                transitionManager->selectedNextMenu = BLANK;
+                transitState = REST;
+                selectedNextMenu = BLANK;
             }
         }
     }
 
-    transitionManager->counter++;
+    counter++;
+
+    return 0;
 }
 
-unsigned int TRANSITION_MANAGER_draw()
+unsigned int TRANSITION_MANAGER_draw(float deltaTime)
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-    
-    pd->graphics->drawBitmap(transitionManager->fadeBitmap, 0, 0, kBitmapUnflipped);
+    pd->graphics->drawBitmap(fadeBitmap, 0, 0, kBitmapUnflipped);
+
+    return 0;
 }
 
 unsigned int TRANSITION_MANAGER_destroy(void)
 {
-    pd_free(transitionManager);
-}
-
-ETransitionState TRANSITION_MANAGER_transitState()
-{
-    return transitionManager->transitState;
+    return 0;
 }

@@ -1,4 +1,5 @@
 #include "brick.h"
+
 #include "memory.h"
 #include "rmem.h"
 #include "raymath.h"
@@ -19,8 +20,6 @@ static const int BRICK_HP = 1;
 
 void animate(LCDSprite* sprite) 
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 	if (brickData->animationElapsedTime <= brickData->animationTime)
 	{
@@ -36,8 +35,6 @@ void animate(LCDSprite* sprite)
 
 void checkExplosion(LCDSprite* sprite)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 	if (brickData->type == ZZ && pd->sprite->isVisible(sprite) == true)
 	{
@@ -50,9 +47,9 @@ void checkExplosion(LCDSprite* sprite)
 		pd->sprite->getPosition(sprite, &x, &y);
 		//explodeBrick();
 		BRICK_spawnExplosion(x, y);
-		if (getShake() < 0.4f) 
+		if (SHAKE_get() < 0.4f) 
 		{
-			setShake(getShake() + 0.1f);
+			SHAKE_set(SHAKE_get() + 0.1f);
 		}
 	}
 
@@ -64,8 +61,6 @@ void checkExplosion(LCDSprite* sprite)
 
 LCDSprite* BRICK_create(int gridPos, char type)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	// Create new Sprite
 	LCDSprite* brick = pd->sprite->newSprite();
 
@@ -74,7 +69,7 @@ LCDSprite* BRICK_create(int gridPos, char type)
 
 	// Set bitmap
 	char* brickName = NULL; // temporary string
-	getPlaydateAPI()->system->formatString(&brickName, "brick_%c", type);
+	pd->system->formatString(&brickName, "brick_%c", type);
 	pd->sprite->setImage(brick, RESOURCEMANAGER_getImage(brickName), kBitmapUnflipped);
 	
 	// Get width and height of the bitmap
@@ -121,8 +116,8 @@ LCDSprite* BRICK_create(int gridPos, char type)
 
 void BRICK_destroy(LCDSprite* sprite)
 {
-	getPlaydateAPI()->sprite->removeSprite(sprite);
-	BrickData* brickData = (BrickData*)getPlaydateAPI()->sprite->getUserdata(sprite);
+	pd->sprite->removeSprite(sprite);
+	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 	pd_free(brickData);
 	pd_free(sprite);
 }
@@ -131,8 +126,6 @@ void BRICK_updateSprite(LCDSprite* sprite)
 {
 	if (sprite)
 	{
-		PlaydateAPI* pd = getPlaydateAPI();
-
 		checkExplosion(sprite);
 		animate(sprite);
 	}
@@ -157,8 +150,6 @@ EBrickType BRICK_translateType(char type)
 
 SpriteCollisionResponseType BRICK_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	if (pd->sprite->getTag(other) == WALL) 
 	{
 		return kCollisionTypeOverlap;
@@ -192,11 +183,9 @@ void BRICK_spawnExplosion(float x, float y)
 
 void BRICK_shatterBrick(LCDSprite* sprite, float vx, float vy)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
-	if (getShake() < 0.5f) 
+	if (SHAKE_get() < 0.5f) 
 	{
-		setShake(getShake() + 0.07f);
+		SHAKE_set(SHAKE_get() + 0.07f);
 	}
 
 	//sfx();
@@ -248,8 +237,6 @@ void BRICK_shatterBrick(LCDSprite* sprite, float vx, float vy)
 
 void explodeBrick(LCDSprite* sprite)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	BrickData* brickData = (BrickData*)pd->sprite->getUserdata(sprite);
 
 	pd->sprite->setVisible(sprite, false);

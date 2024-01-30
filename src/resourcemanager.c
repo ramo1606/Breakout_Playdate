@@ -27,12 +27,12 @@ static void RESOURCEMANAGER_loadImage(const char* filename, void* userdata)
 	char* file = filename;
 	char* path = NULL;
 	file[strlen(filename) - 4] = '\0';
-	getPlaydateAPI()->system->formatString(&path, "images/%s", file);
+	pd->system->formatString(&path, "images/%s", file);
 	
 	// Load bitmap
-	LCDBitmap* img = getPlaydateAPI()->graphics->loadBitmap(path, &outErr);
+	LCDBitmap* img = pd->graphics->loadBitmap(path, &outErr);
 	if (outErr != NULL) {
-		getPlaydateAPI()->system->logToConsole("Error loading image '%s': %s", filename, outErr);
+		pd->system->logToConsole("Error loading image '%s': %s", filename, outErr);
 	}
 
 	pd_free(path);				// free path string
@@ -71,7 +71,7 @@ void RESOURCEMANAGER_load(void)
 {
 	// Load all images.
 	da_init(images);
-	int filesNum = getPlaydateAPI()->file->listfiles("images", &RESOURCEMANAGER_loadImage, NULL, 0);
+	int filesNum = pd->file->listfiles("images", &RESOURCEMANAGER_loadImage, NULL, 0);
 	//int filesNum = getPlaydateAPI()->file->listfiles("sounds", &RESOURCEMANAGER_loadSound, NULL, 0);
 	//RESOURCEMANAGER_loadMusic(resources);
 }

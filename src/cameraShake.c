@@ -1,12 +1,12 @@
 #include "cameraShake.h"
+
+#include "common.h"
 #include "utils.h"
 
-static float shake = 0.0f;
+float shake = 0.0f;
 
-void doShake()
+void SHAKE_update()
 {
-	PlaydateAPI* pd = getPlaydateAPI();
-
 	int shakeX = 42 - randomInt(0, 84);
 	int shakeY = 42 - randomInt(0, 84);
 
@@ -19,12 +19,12 @@ void doShake()
 	}
 }
 
-void setShake(float value)
+void SHAKE_set(float value)
 {
 	shake = value;
 }
 
-float getShake()
+float SHAKE_get()
 {
 	return shake;
 }

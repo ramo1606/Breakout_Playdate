@@ -1,9 +1,10 @@
 #include "utils.h"
+#include "common.h"
+#include <math.h>
+#include <stdlib.h>
 
 void UTILS_init()
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-
     /* Intializes random number generator */
     srand(pd->system->getSecondsSinceEpoch(NULL));
 }

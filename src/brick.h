@@ -1,10 +1,7 @@
 #ifndef BRICK_H
 #define BRICK_H
 
-#include "pd_api.h"
 #include "common.h"
-
-#include <stdbool.h>
 
 typedef struct BrickData
 {

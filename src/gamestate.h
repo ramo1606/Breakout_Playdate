@@ -3,10 +3,6 @@
 
 #include "common.h"
 
-#include <stdbool.h>
-
-void GAMESTATE_setNextState(EMode mode);
-EMode GAMESTATE_getNextState(void);
 unsigned int GAMESTATE_init(void);
 unsigned int GAMESTATE_update(float deltaTime);
 unsigned int GAMESTATE_draw(float deltaTime);
@@ -19,4 +15,5 @@ void GAMESTATE_resetChain();
 void GAMESTATE_checkSD(void);
 void GAMESTATE_hitBrick(SpriteCollisionInfo* collision, bool combo);
 void GAMESTATE_getPowerup(LCDSprite* pill);
+
 #endif

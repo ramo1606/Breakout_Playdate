@@ -1,9 +1,7 @@
 #ifndef PADDLE_H
 #define PADDLE_H
 
-#include "pd_api.h"
 #include "common.h"
-#include <stdbool.h>
 
 #define PADDLE_INITIAL_X_POS 200
 #define PADDLE_INITIAL_Y_POS 230

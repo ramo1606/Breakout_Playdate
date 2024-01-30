@@ -10,149 +10,131 @@
 #include "logostate.h"
 #include "startstate.h"
 #include "gamestate.h"
+#include "gameoverstate.h"
+#include "leveloverstate.h"
+#include "winnerstate.h"
 #include "cameraShake.h"
 #include "particles.h"
 
-#include <stdbool.h>
 #include <stdlib.h>
 #include <math.h>
 
 #define RAYMATH_IMPLEMENTATION
 
-typedef struct
-{
-	//Mode
-	EMode mode;
-	StateManager* stateManager;
-} Engine;
-
-static Engine engine;
 static float deltaTime;
+PlaydateAPI* pd = NULL;
+EMode mode = BLANK;
+bool fastMode = false;
+int blinkSpeed = 1;
 
-void ENGINE_create(PlaydateAPI* p)
+int ENGINE_create(PlaydateAPI* p)
 {
-	setPlaydateAPI(p);							// Set Playdate API to access globally
-	MEMORY_initializeMemoryTools(p);			// Initialize memory tools
-	RESOURCEMANAGER_load();						// Load resources
-	TRANSITION_MANAGER_init();
-	PARTICLES_init();
-	UTILS_init();
-
+	// Init global variables
+	pd = p;					// Set Playdate API to access globally
+	mode = LOGO;
 	deltaTime = 0.0f;
 
-	//Fonts
+	// Init subsystems and resources
+	RESOURCEMANAGER_load();						// Load resources
+	PARTICLES_init();
+	UTILS_init();
+	TRANSITION_MANAGER_init();
+
+	// Load Fonts
 	const char* err;
-	font = getPlaydateAPI()->graphics->loadFont(fontpath, &err);
+	font = pd->graphics->loadFont(fontpath, &err);
 	if (font == NULL)
-		getPlaydateAPI()->system->error("%s:%i Couldn't load font %s: %s", __FILE__, __LINE__, fontpath, err);
+		pd->system->error("%s:%i Couldn't load font %s: %s", __FILE__, __LINE__, fontpath, err);
 
-	engine.stateManager = STATEMANAGER_create();
-	STATEMANAGER_init(engine.stateManager);
-	
-	// Create initial state
-	//State* logoState = pd_malloc(sizeof(State));
-	//logoState->setNextState = LOGOSTATE_setNextState;
-	//logoState->getNextState = LOGOSTATE_getNextState;
-	//logoState->init = LOGOSTATE_init;
-	//logoState->update = LOGOSTATE_update;
-	//logoState->draw = LOGOSTATE_draw;
-	//logoState->destroy = LOGOSTATE_destroy;
-
-	//STATEMANAGER_push(engine.stateManager, logoState);
-
-	State* startState = pd_malloc(sizeof(State));
-	startState->setNextState = STARTSTATE_setNextState;
-	startState->getNextState = STARTSTATE_getNextState;
-	startState->init = STARTSTATE_init;
-	startState->update = STARTSTATE_update;
-	startState->draw = STARTSTATE_draw;
-	startState->destroy = STARTSTATE_destroy;
-
-	STATEMANAGER_push(engine.stateManager, startState);
-
-	//Mode
-	engine.mode = STATEMANAGER_top(engine.stateManager)->getNextState();
+	return 0;
 }
 
-void updateState(void)
+int updateState(void)
 {
-	State* currentState = STATEMANAGER_top(engine.stateManager);
-	switch (engine.mode)
+	//State* currentState = STATEMANAGER_top(engine.stateManager);
+	switch (mode)
 	{
 	case LOGO:
-		if (engine.mode != currentState->getNextState())
-		{
-			engine.mode = currentState->getNextState();
-			STATEMANAGER_pop(engine.stateManager);
-			pd_free(currentState);
-
-			currentState = pd_malloc(sizeof(State));
-			currentState->setNextState = STARTSTATE_setNextState;
-			currentState->getNextState = STARTSTATE_getNextState;
-			currentState->init = STARTSTATE_init;
-			currentState->update = STARTSTATE_update;
-			currentState->draw = STARTSTATE_draw;
-			currentState->destroy = STARTSTATE_destroy;
-
-			STATEMANAGER_push(engine.stateManager, currentState);
-		}
+		LOGOSTATE_update(deltaTime);
 		break;
 	case START:
-		if (engine.mode != currentState->getNextState())
-		{
-			engine.mode = currentState->getNextState();
-			STATEMANAGER_pop(engine.stateManager);
-			pd_free(currentState);
-
-			currentState = pd_malloc(sizeof(State));
-			currentState->setNextState = GAMESTATE_setNextState;
-			currentState->getNextState = GAMESTATE_getNextState;
-			currentState->init = GAMESTATE_init;
-			currentState->update = GAMESTATE_update;
-			currentState->draw = GAMESTATE_draw;
-			currentState->destroy = GAMESTATE_destroy;
-
-			STATEMANAGER_push(engine.stateManager, currentState);
-		}
+		STARTSTATE_update(deltaTime);
 		break;
 	case GAME:
+		GAMESTATE_update(deltaTime);
 		break;
 	case GAME_OVER:
-		break;
-	case GAME_OVER_WAIT:
+		GAMEOVERSTATE_update(deltaTime);
 		break;
 	case LEVEL_OVER:
-		break;
-	case LEVEL_OVER_WAIT:
+		LEVELOVERSTATE_update(deltaTime);
 		break;
 	case WINNER:
-		break;
-	case WINNER_WAIT:
+		WINNERSTATE_update(deltaTime);
 		break;
 	default:
 		break;
 	}
+
+	return 0;
 }
+
+int ENGINE_draw(void);
 
 int ENGINE_update(void)
 {
-	updateState();
-	getPlaydateAPI()->graphics->clear(kColorWhite);
-	
-	deltaTime = getPlaydateAPI()->system->getElapsedTime();
-	getPlaydateAPI()->system->resetElapsedTime();
-
+	//BLINK_update();
+	SHAKE_update();
 	PARTICLES_update();
-	doShake();
+	//SASH_update();
+	updateState();
+	TRANSITION_MANAGER_update(deltaTime);
+	ENGINE_draw();
+	
+	// Calculate deltaTime
+	deltaTime = pd->system->getElapsedTime();
+	pd->system->resetElapsedTime();
 
-	TRANSITION_MANAGER_update(STATEMANAGER_top(engine.stateManager));
-	STATEMANAGER_update(engine.stateManager, deltaTime);
+	return 0;
+}
 
-	TRANSITION_MANAGER_draw();
-	STATEMANAGER_draw(engine.stateManager, deltaTime);
+int drawState(void) 
+{
+	switch (mode)
+	{
+	case LOGO:
+		LOGOSTATE_draw(deltaTime);
+		break;
+	case START:
+		STARTSTATE_draw(deltaTime);
+		break;
+	case GAME:
+		GAMESTATE_draw(deltaTime);
+		break;
+	case GAME_OVER:
+		GAMEOVERSTATE_draw(deltaTime);
+		break;
+	case LEVEL_OVER:
+		LEVELOVERSTATE_draw(deltaTime);
+		break;
+	case WINNER:
+		WINNERSTATE_draw(deltaTime);
+		break;
+	default:
+		break;
+	}
+
+	return 0;
+}
+
+int ENGINE_draw(void)
+{
+	pd->graphics->clear(kColorWhite);
+	TRANSITION_MANAGER_draw(deltaTime);
+	drawState();
 	PARTICLES_draw();
-
-	return 1;
+	
+	return 0;
 }
 
 float ENGINE_deltaTime(void)

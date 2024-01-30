@@ -3,7 +3,6 @@
 #include "common.h"
 #include "utils.h"
 #include "raymath.h"
-#include "patterns.h"
 #include "rmem.h"
 #include "resourcemanager.h"
 
@@ -11,7 +10,7 @@
 
 #define PARTICLES_POOL_MAX 500
 
-struct Particle
+typedef struct 
 {
 	float x;
 	float y;
@@ -27,12 +26,12 @@ struct Particle
 	float rotationTimer;
 	float s;
 	float os;
-};
+}Particle;
 
 DA_TYPEDEF(Particle*, ParticlesArrayType);
 
-static ObjPool particlesPool;
-static ParticlesArrayType particles;
+ObjPool particlesPool;
+ParticlesArrayType particles;
 
 void PARTICLES_init(void)
 {
@@ -42,7 +41,6 @@ void PARTICLES_init(void)
 
 void PARTICLES_update(void)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
 	for (size_t i = da_count(particles); i > 0; i--)
 	{
 		Particle* particle = da_get(particles, i - 1);
@@ -120,7 +118,6 @@ void PARTICLES_update(void)
 
 void PARTICLES_draw(void)
 {
-	PlaydateAPI* pd = getPlaydateAPI();
 	for (int i = 0; i < da_count(particles); i++) 
 	{
 		Particle* particle = da_get(particles, i);
@@ -218,4 +215,5 @@ void PARTICLES_removeAllParticles(void)
 	{
 		PARTICLES_removeParticle(i);
 	}
+	da_clear(particles);
 }

@@ -1,10 +1,7 @@
 #ifndef PILL_H
 #define PILL_H
 
-#include "pd_api.h"
 #include "common.h"
-
-#include <stdbool.h>
 
 typedef struct PillData
 {

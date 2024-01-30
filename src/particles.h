@@ -5,8 +5,6 @@
 
 #include "pd_api.h"
 
-#include <stdbool.h>
-
 //particles
 // type 0 - static pixel
 // type 1 - gravity pixel
@@ -25,8 +23,6 @@ typedef enum
 	GRAVITY_SMOKE,
 	SPEED_LINE
 }EParticleType;
-
-typedef struct Particle Particle;
 
 void PARTICLES_init(void);
 void PARTICLES_update(void);
