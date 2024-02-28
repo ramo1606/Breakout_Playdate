@@ -252,6 +252,26 @@ void BALL_updateSprite(LCDSprite* sprite)
 	}
 }
 
+void BALL_deactivate(LCDSprite* sprite)
+{
+	pd->sprite->setUpdatesEnabled(sprite, 0);
+	pd->sprite->setVisible(sprite, 0);
+	pd->sprite->setCollisionsEnabled(sprite, 0);
+
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+	ballData->isDead = true;
+}
+
+void BALL_activate(LCDSprite* sprite)
+{
+	pd->sprite->setUpdatesEnabled(sprite, 1);
+	pd->sprite->setVisible(sprite, 1);
+	pd->sprite->setCollisionsEnabled(sprite, 1);
+	
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+	ballData->isDead = false;
+}
+
 SpriteCollisionResponseType BALL_collisionResponse(LCDSprite* sprite, LCDSprite* other)
 {
 	if (pd->sprite->getTag(other) == PILL) 
@@ -293,6 +313,24 @@ void BALL_setAngle(LCDSprite* sprite, float angle)
 
 void BALL_resetBall(LCDSprite* sprite)
 {
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(sprite);
+
+	ballData->dx = BALL_DX;
+	ballData->dy = BALL_DY;
+	ballData->lastHitDx = BALL_DX;
+	ballData->lastHitDy = BALL_DY;
+	ballData->speed = BALL_SPEED;
+	ballData->angle = BALL_ANGLE;
+	ballData->isStuck = false;
+	ballData->isDead = false;
+	ballData->rammed = false;
+	ballData->isMega = false;
+	ballData->collisionCount = 0;
+	ballData->infiniteCounter = 0.0f;
+	ballData->timerSlow = 0;
+	ballData->timerMegaWait = 0;
+	ballData->timerMega = 0;
+	ballData->lastCollision = NONE;
 }
 
 void BALL_megaballSmash(LCDSprite* sprite)
@@ -328,6 +366,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		if (collision->normal.y == -1)
 		{
 			ballData->isDead = true;
+			BALL_deactivate(sprite);
 			BALL_spawnDeath(collision->touch.x, collision->touch.y);
 			SHAKE_set(SHAKE_get() + 0.4f);
 		}

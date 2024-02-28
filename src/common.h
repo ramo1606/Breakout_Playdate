@@ -9,7 +9,7 @@
 #define TEXT_HEIGHT 16
 
 //Font
-static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";
+static const char* fontpath = "fonts/R-TypeII";
 static LCDFont* font = NULL;
 
 // Enums
@@ -76,11 +76,26 @@ typedef enum
 
 // Global Variables
 extern PlaydateAPI* pd;
+
+// Game
 extern EMode mode;
 extern bool fastMode;
-extern int blinkSpeed;
 
+// Effects
 extern float fadePercentage;
+
+// Blink
+extern int blinkFrame;
+extern int blinkSpeed;
+extern int blinkBlack; 
+extern int blinkBlackIndex;
+extern int blinkWhite; 
+extern int blinkWhiteIndex;
+
+// Suden Death
+extern LCDSprite* suddenDeathBrick;
+extern int suddenDeathTimer;
+extern int suddenDeathThresh;
 
 extern LCDPattern BayerDither00;
 extern LCDPattern BayerDither01;

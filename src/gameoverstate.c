@@ -11,46 +11,20 @@
 
 #include <stdbool.h>
 
-typedef struct
-{
-    uint64_t gameOverCountdown;
-    uint64_t blinkSpeed;
-    bool gameOverRestart;
-
-    EMode nextState;
-} GameOverState;
-
-static GameOverState* state = NULL;
-
-void GAMEOVERSTATE_setNextState(EMode mode)
-{
-	state->nextState = mode;
-}
-
-EMode GAMEOVERSTATE_getNextState(void)
-{
-	return state->nextState;
-}
+uint64_t gameOverCountdown;
+bool gameOverRestart;
 
 unsigned int GAMEOVERSTATE_init(void)
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-
-    // Create GameState
-    state = pd_malloc(sizeof(GameOverState));
-
-    state->nextState = START;
-    state->gameOverCountdown = -1;
-    state->blinkSpeed = 0;
-    state->gameOverRestart = false;
+    gameOverCountdown = -1;
+    gameOverRestart = false;
+    //blinkSpeed = 0;
 
     return 0;
 }
 
 void GAMEOVERSTATE_processInput(void)
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-
     PDButtons current;
     pd->system->getButtonState(NULL, NULL, &current);
     bool buttonPressed = false;
@@ -58,24 +32,22 @@ void GAMEOVERSTATE_processInput(void)
     if (current & kButtonA && !buttonPressed)
     {
         //Restart level
-        state->gameOverCountdown = 80;
-        state->blinkSpeed = 1;
-        state->gameOverRestart = true;
+        gameOverCountdown = 80;
+        gameOverRestart = true;
+        //blinkSpeed = 1;
     }
 
     if (current & kButtonB && !buttonPressed)
     {
         //Go To start
-        state->gameOverCountdown = 80;
-        state->blinkSpeed = 1;
-        state->gameOverRestart = false;
+        gameOverCountdown = 80;
+        gameOverRestart = false;
+        //blinkSpeed = 1;
     }
 }
 
 unsigned int GAMEOVERSTATE_update(float deltaTime)
 {
-    PlaydateAPI* pd = getPlaydateAPI();
-
     float ang = randomFloat(0.0f, PI * 2.f);
     float dx = sinf(ang) * randomFloat(0.0f, 0.6f);
     float dy = cosf(ang) * randomFloat(0.0f, 0.6f);
@@ -85,27 +57,27 @@ unsigned int GAMEOVERSTATE_update(float deltaTime)
     PARTICLES_addParticle(randomInt(0, 240), topRow, dx, dy, GRAVITY_SMOKE, 70.0f + randomFloat(0.0f, 15.0f), colors, 4, 6.0f + randomFloat(0.0f, 12.0f));
     PARTICLES_addParticle(randomInt(0, 240), btnRow, dx, dy, GRAVITY_SMOKE, 70.0f + randomFloat(0.0f, 15.0f), colors, 4, 6.0f + randomFloat(0.0f, 12.0f));
 
-    if (state->gameOverCountdown < 0)
+    if (gameOverCountdown < 0)
     {
         GAMEOVERSTATE_processInput();
     }
     else 
     {
-        state->gameOverCountdown--;
+        gameOverCountdown--;
         //fade
-        if (state->gameOverCountdown <= 0) 
+        if (gameOverCountdown <= 0) 
         {
-            if (state->gameOverRestart) 
+            if (gameOverRestart) 
             {
-                state->gameOverCountdown = -1;
-                state->blinkSpeed = 8;
+                gameOverCountdown = -1;
+                //blinkSpeed = 8;
                 PARTICLES_removeAllParticles();
                 //restart level
             }
             else 
             {
-                state->gameOverCountdown = -1;
-                state->blinkSpeed = 8;
+                gameOverCountdown = -1;
+                //blinkSpeed = 8;
                 //go to start
                 //hs_x = 128
                 //hs_dx = 128
@@ -130,8 +102,5 @@ unsigned int GAMEOVERSTATE_draw(float deltaTime)
 
 unsigned int GAMEOVERSTATE_destroy(void)
 {
-    pd_free(state);
-    state = NULL;
-
 	return 0;
 }

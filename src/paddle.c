@@ -66,8 +66,15 @@ void PADDLE_changeSize(LCDSprite* sprite, EPaddleSize newSize)
 	}
 }
 
-void PADDLE_reset(LCDSprite* sprite)
+void PADDLE_resetPaddle(LCDSprite* sprite)
 {
+	PaddleData* paddleData = (PaddleData*)pd->sprite->getUserdata(sprite);
+	paddleData->dx = 0.f;
+	paddleData->sticky = false;
+	paddleData->speedWind = 0;
+	paddleData->timerExpand = 0;
+	paddleData->timerReduce = 0;
+	paddleData->currentSize = MEDIUM;
 }
 
 LCDSprite* PADDLE_create(float x, float y)
@@ -99,6 +106,7 @@ LCDSprite* PADDLE_create(float x, float y)
 	// Initialize paddle data
 	PaddleData* paddleData = pd_malloc(sizeof(PaddleData));
 	paddleData->dx = 0.f;
+	paddleData->sticky = false;
 	paddleData->speedWind = 0;
 	paddleData->timerExpand = 0;
 	paddleData->timerReduce = 0;

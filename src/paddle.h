@@ -10,6 +10,7 @@
 typedef struct PaddleData
 {
 	float dx;
+	bool sticky;
 	int timerReduce;
 	int timerExpand;
 	EPaddleSize currentSize;
@@ -23,7 +24,7 @@ void PADDLE_updateSprite(LCDSprite* sprite);
 
 void PADDLE_spawnSpeedLines(LCDSprite* sprite, float x, float y);
 
-void PADDLE_reset(LCDSprite* sprite);
+void PADDLE_resetPaddle(LCDSprite* sprite);
 
 SpriteCollisionResponseType PADDLE_collisionResponse(LCDSprite* sprite, LCDSprite* other);
 

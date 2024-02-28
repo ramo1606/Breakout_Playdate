@@ -15,6 +15,7 @@
 #include "winnerstate.h"
 #include "cameraShake.h"
 #include "particles.h"
+#include "blink.h"
 
 #include <stdlib.h>
 #include <math.h>
@@ -25,7 +26,15 @@ static float deltaTime;
 PlaydateAPI* pd = NULL;
 EMode mode = BLANK;
 bool fastMode = false;
-int blinkSpeed = 1;
+
+// Blink
+//int blinkFrame = 0;
+//int blinkSpeed = 8;
+
+//int blinkBlack = 7;
+//int blinkBlackIndex = 1;
+//int blinkWhite = 7;
+//int blinkWhiteIndex = 1;
 
 int ENGINE_create(PlaydateAPI* p)
 {
@@ -83,7 +92,7 @@ int ENGINE_draw(void);
 
 int ENGINE_update(void)
 {
-	//BLINK_update();
+	BLINK_update();
 	SHAKE_update();
 	PARTICLES_update();
 	//SASH_update();
