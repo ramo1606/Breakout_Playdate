@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "memory.h"
 #include "resourcemanager.h"
-#include "gamestate.h"
+#include "game.h"
 #include "raymath.h"
 #include "particles.h"
 
@@ -87,7 +87,7 @@ void PILL_updateSprite(LCDSprite* sprite)
 			{
 				if (pd->sprite->getTag(collisions[i].other) == PADDLE)
 				{
-					GAMESTATE_getPowerup(collisions[i].sprite);
+					GAME_getPowerup(collisions[i].sprite);
 					PILL_destroy(sprite);
 					PILL_spawnPufft(x, y);
 					//sfx();

@@ -6,7 +6,7 @@
 #include "particles.h"
 #include "cameraShake.h"
 
-#include "gamestate.h"
+#include "game.h"
 #include "brick.h"
 #include "paddle.h"
 #include "raymath.h"
@@ -19,7 +19,7 @@ static const float BALL_DY = 1.f;
 static const float BALL_SPEED = 3.5f;
 static const float BALL_ANGLE = 1.f;
 
-void checkInfinite(LCDSprite* ball) 
+static void checkInfinite(LCDSprite* ball) 
 {
 	BallData* ballData = (BallData*)pd->sprite->getUserdata(ball);
 	if (ballData->infiniteCounter > MAX_COLLISIONS_COUNT)
@@ -103,8 +103,8 @@ LCDSprite* BALL_create(float x, float y)
 	BallData* ballData = pd_malloc(sizeof(BallData));
 	ballData->dx = BALL_DX;
 	ballData->dy = BALL_DY;
-	ballData->lastHitDx = BALL_DX;
-	ballData->lastHitDy = BALL_DY;
+	ballData->lastHitX = 0.f;
+	ballData->lastHitY = 0.f;
 	ballData->speed = BALL_SPEED;
 	ballData->angle = BALL_ANGLE;
 	ballData->isStuck = false;
@@ -169,7 +169,7 @@ void BALL_updateSprite(LCDSprite* sprite)
 		if(ballData->isStuck)
 		{
 			// Get all the data that we need to calculate the ball position if is stuck, which is on the top of the paddle
-			LCDSprite* paddle = GAMESTATE_getPaddle();
+			LCDSprite* paddle = GAME_getPaddle();
 			float pad_x = 0;
 			float pad_y = 0;
 			pd->sprite->getPosition(paddle, &pad_x, &pad_y);
@@ -201,8 +201,9 @@ void BALL_updateSprite(LCDSprite* sprite)
 			SpriteCollisionInfo* collisions = NULL;
 			collisions = pd->sprite->moveWithCollisions(sprite, nextx, nexty, &actual_x, &actual_y, &len);
 
-			ballData->lastHitDx = ballData->dx;
-			ballData->lastHitDy = ballData->dy;
+			//Save speed before collision
+			ballData->lastHitX = ballData->dx;
+			ballData->lastHitY = ballData->dy;
 
 			// check if there is any collision
 			if (len > 0	)
@@ -219,10 +220,19 @@ void BALL_updateSprite(LCDSprite* sprite)
 					}
 				}
 				
-				BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
+				if (!ballData->isMega)
+				{
+					BALL_processCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
+				}
+				else 
+				{
+					BALL_processMegaCollision(sprite, &collisions[nearestCollision], actual_x, actual_y);
+				}
 			}
 
 			// Process mega ball collision
+			
+
 			// Trail particles
 			if (ballData->timerMega > 0 || ballData->timerMegaWait > 0) 
 			{
@@ -317,8 +327,8 @@ void BALL_resetBall(LCDSprite* sprite)
 
 	ballData->dx = BALL_DX;
 	ballData->dy = BALL_DY;
-	ballData->lastHitDx = BALL_DX;
-	ballData->lastHitDy = BALL_DY;
+	ballData->lastHitX = 0.f;
+	ballData->lastHitY = 0.f;
 	ballData->speed = BALL_SPEED;
 	ballData->angle = BALL_ANGLE;
 	ballData->isStuck = false;
@@ -331,6 +341,29 @@ void BALL_resetBall(LCDSprite* sprite)
 	ballData->timerMegaWait = 0;
 	ballData->timerMega = 0;
 	ballData->lastCollision = NONE;
+}
+
+void BALL_copyBall(LCDSprite* original, LCDSprite* copy)
+{
+	BallData* ballData = (BallData*)pd->sprite->getUserdata(original);
+	BallData* copyData = (BallData*)pd->sprite->getUserdata(copy);
+
+	copyData->dx = ballData->dx;
+	copyData->dy = ballData->dy;
+	copyData->lastHitX = ballData->lastHitX;
+	copyData->lastHitY = ballData->lastHitY;
+	copyData->speed = ballData->speed;
+	copyData->angle = ballData->angle;
+	copyData->isStuck = ballData->isStuck;
+	copyData->isDead = ballData->isDead;
+	copyData->rammed = ballData->rammed;
+	copyData->isMega = ballData->isMega;
+	copyData->collisionCount = ballData->collisionCount;
+	copyData->infiniteCounter = ballData->infiniteCounter;
+	copyData->timerSlow = ballData->timerSlow;
+	copyData->timerMegaWait = ballData->timerMegaWait;
+	copyData->timerMega = ballData->timerMega;
+	copyData->lastCollision = ballData->lastCollision;
 }
 
 void BALL_megaballSmash(LCDSprite* sprite)
@@ -348,7 +381,6 @@ void BALL_megaballSmash(LCDSprite* sprite)
 		}
 	}
 }
-
 
 void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y)
 {
@@ -393,14 +425,13 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		bool bend = false;
 		bool angf = false;
 		ballData->infiniteCounter = 0;
-		GAMESTATE_resetChain();
+		GAME_resetChain();
 		
-		GAMESTATE_checkSD();
+		GAME_checkSuddenDeath();
 
 		if (collision->normal.x != 0)
 		{
-			// TODO: check pixel perfect when having the new assets
-			if (y + (ballRect.height * 0.5f) > pad_y - (padRect.height * 0.5f) + 3)
+			if (y + (ballRect.height * 0.5f) > pad_y + (ballRect.height * 0.5f) + 2.f)
 			{
 				ballData->rammed = true;
 				BALL_spawnPuft(x, y);
@@ -410,7 +441,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 				bend = true;
 				angf = false;
 				collision->normal.y = -1;
-				pd->sprite->moveTo(sprite, x, pad_y - (padRect.height * 0.5f) - (ballRect.height * 0.5));
+				pd->sprite->moveTo(sprite, x, pad_y - (ballRect.height * 0.5f));
 			}
 		}
 
@@ -419,7 +450,7 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		// Change angle
 		if (collision->normal.y == -1)
 		{
-			if (!bend && abs(paddleData->dx) > 1)
+			if (!bend && fabs(paddleData->dx) > 1.0f)
 			{
 				bend = true;
 				if (sign(paddleData->dx) == sign(ballData->dx))
@@ -457,16 +488,13 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 			PDRect ball_bounds = pd->sprite->getBounds(sprite);
 			pd->sprite->moveTo(sprite, x, pad_y - (pad_bounds.height * 0.5f) - (ball_bounds.height * 0.5));
 
-			//TODO: Catch Powerup
-			//if (sticky) 
-			//{
-			//	if sticky then
-			//		releasestuck()
-			//		sticky = false
-			//		_b.stuck = true
-			//		sticky_x = _b.x - pad_x
-			//	end
-			//}
+			// Catch Powerup
+			if (paddleData->sticky)
+			{
+				GAME_releaseStuck();
+				paddleData->sticky = false;
+				ballData->isStuck = true;
+			}
 		}
 
 		BALL_spawnPuft(x, y);
@@ -490,19 +518,17 @@ void BALL_processCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, fl
 		}
 		BALL_reflect(ballData, collision->normal);
 		checkInfinite(sprite);
-		GAMESTATE_hitBrick(collision, true);
+		GAME_hitBrick(collision, true);
 
 		if (brickData->type == INVINCIBLE)
 		{
 			BALL_spawnPuft(x, y);
 		}
-		else 
-		{
-			pd->sprite->setVisible(collision->other, false);
-			pd->sprite->removeSprite(collision->other);
-			//BRICK_destroy(collision->other);
-		}
 	}
+}
+
+void BALL_processMegaCollision(LCDSprite* sprite, SpriteCollisionInfo* collision, float x, float y) 
+{
 }
 
 void BALL_spawnMegaTrail(float x, float y, float radius)

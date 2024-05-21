@@ -1,18 +1,38 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "pd_api.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include <stdbool.h>
 
-// Game
+#include "pd_api.h"
+
+/*************
+* Screen Size
+*************/
 #define TEXT_WIDTH 86
 #define TEXT_HEIGHT 16
 
-//Font
-static const char* fontpath = "fonts/R-TypeII";
-static LCDFont* font = NULL;
+/***************
+* Game constants
+****************/
+#define MAX_BALLS 3
+#define MAX_SICK 12
+#define START_LIVES 4
 
-// Enums
+#define INTRO_COUNTDOWN 60
+#define START_COUNTDOWN 60
+#define GAMEOVER_COUNTDOWN 60
+
+#define HIGH_SCORE_MAX 5;
+
+//Font
+static const char* fontpath = "/System/Fonts/Asheville-Sans-14-Bold.pft";
+extern LCDFont* font;
+
+/*******
+* Enums
+********/
 typedef enum
 {
 	BLANK,
@@ -20,11 +40,11 @@ typedef enum
 	START,
 	GAME,
 	GAME_OVER,
-	//GAME_OVER_WAIT,
+	GAME_OVER_WAIT,
 	LEVEL_OVER,
-	//LEVEL_OVER_WAIT,
+	LEVEL_OVER_WAIT,
 	WINNER,
-	//WINNER_WAIT
+	WINNER_WAIT
 } EMode;
 
 typedef enum
@@ -34,7 +54,8 @@ typedef enum
 	BALL,
 	BRICK,
 	WALL,
-	PILL
+	PILL,
+	UI
 } ESpriteType;
 
 typedef enum
@@ -74,8 +95,14 @@ typedef enum
 	LARGE
 } EPaddleSize;
 
-// Global Variables
+/*****************
+* Global Variables
+******************/
 extern PlaydateAPI* pd;
+
+// Intro
+extern int introCountdown;
+extern int startCountdown;
 
 // Game
 extern EMode mode;
@@ -96,6 +123,9 @@ extern int blinkWhiteIndex;
 extern LCDSprite* suddenDeathBrick;
 extern int suddenDeathTimer;
 extern int suddenDeathThresh;
+extern int suddenDeathBlinkTimer;
+
+extern char* sick[MAX_SICK];
 
 extern LCDPattern BayerDither00;
 extern LCDPattern BayerDither01;

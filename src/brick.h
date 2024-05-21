@@ -17,6 +17,7 @@ typedef struct BrickData
 	float originalY;
 	float animationElapsedTime;
 	float animationTime;
+	bool animating;
 } BrickData;
 
 LCDSprite* BRICK_create(int gridPos, char type);

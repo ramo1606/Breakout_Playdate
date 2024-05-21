@@ -3,7 +3,7 @@
 #include "common.h"
 #include "utils.h"
 
-float shake = 0.0f;
+static float shake = 0.0f;
 
 void SHAKE_update()
 {

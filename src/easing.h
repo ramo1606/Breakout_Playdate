@@ -1,56 +1,59 @@
+#ifndef EASING_H
+#define EASING_H
+
 #include <math.h>
 
 #ifndef PI
 #define PI 3.1415926545
 #endif
 
-float easeInSine(float t) {
+inline float easeInSine(float t) {
     return sin(1.5707963 * t);
 }
 
-float easeOutSine(float t) {
+inline float easeOutSine(float t) {
     return 1 + sin(1.5707963 * (--t));
 }
 
-float easeInOutSine(float t) {
+inline float easeInOutSine(float t) {
     return 0.5 * (1 + sin(3.1415926 * (t - 0.5)));
 }
 
-float easeInQuad(float t) {
+inline float easeInQuad(float t) {
     return t * t;
 }
 
-float easeOutQuad(float t) {
+inline float easeOutQuad(float t) {
     return t * (2 - t);
 }
 
-float easeInOutQuad(float t) {
+inline float easeInOutQuad(float t) {
     return t < 0.5 ? 2 * t * t : t * (4 - 2 * t) - 1;
 }
 
-float easeInCubic(float t) {
+inline float easeInCubic(float t) {
     return t * t * t;
 }
 
-float easeOutCubic(float t) {
+inline float easeOutCubic(float t) {
     return 1 + (--t) * t * t;
 }
 
-float easeInOutCubic(float t) {
+inline float easeInOutCubic(float t) {
     return t < 0.5 ? 4 * t * t * t : 1 + (--t) * (2 * (--t)) * (2 * t);
 }
 
-float easeInQuart(float t) {
+inline float easeInQuart(float t) {
     t *= t;
     return t * t;
 }
 
-float easeOutQuart(float t) {
+inline float easeOutQuart(float t) {
     t = (--t) * t;
     return 1 - t * t;
 }
 
-float easeInOutQuart(float t) {
+inline float easeInOutQuart(float t) {
     if (t < 0.5) {
         t *= t;
         return 8 * t * t;
@@ -61,17 +64,17 @@ float easeInOutQuart(float t) {
     }
 }
 
-float easeInQuint(float t) {
+inline float easeInQuint(float t) {
     float t2 = t * t;
     return t * t2 * t2;
 }
 
-float easeOutQuint(float t) {
+inline float easeOutQuint(float t) {
     float t2 = (--t) * t;
     return 1 + t * t2 * t2;
 }
 
-float easeInOutQuint(float t) {
+inline float easeInOutQuint(float t) {
     float t2;
     if (t < 0.5) {
         t2 = t * t;
@@ -83,15 +86,15 @@ float easeInOutQuint(float t) {
     }
 }
 
-float easeInExpo(float t) {
+inline float easeInExpo(float t) {
     return (pow(2, 8 * t) - 1) / 255;
 }
 
-float easeOutExpo(float t) {
+inline float easeOutExpo(float t) {
     return 1 - pow(2, -8 * t);
 }
 
-float easeInOutExpo(float t) {
+inline float easeInOutExpo(float t) {
     if (t < 0.5) {
         return (pow(2, 16 * t) - 1) / 510;
     }
@@ -100,15 +103,15 @@ float easeInOutExpo(float t) {
     }
 }
 
-float easeInCirc(float t) {
+inline float easeInCirc(float t) {
     return 1 - sqrt(1 - t);
 }
 
-float easeOutCirc(float t) {
+inline float easeOutCirc(float t) {
     return sqrt(t);
 }
 
-float easeInOutCirc(float t) {
+inline float easeInOutCirc(float t) {
     if (t < 0.5) {
         return (1 - sqrt(1 - 2 * t)) * 0.5;
     }
@@ -117,15 +120,15 @@ float easeInOutCirc(float t) {
     }
 }
 
-float easeInBack(float t) {
+inline float easeInBack(float t) {
     return t * t * (2.70158 * t - 1.70158);
 }
 
-float easeOutBack(float t) {
+inline float easeOutBack(float t) {
     return 1 + (--t) * t * (2.70158 * t + 1.70158);
 }
 
-float easeInOutBack(float t) {
+inline float easeInOutBack(float t) {
     if (t < 0.5) {
         return t * t * (7 * t - 2.5) * 2;
     }
@@ -134,17 +137,17 @@ float easeInOutBack(float t) {
     }
 }
 
-float easeInElastic(float t) {
+inline float easeInElastic(float t) {
     float t2 = t * t;
     return t2 * t2 * sin(t * PI * 4.5);
 }
 
-float easeOutElastic(float t) {
+inline float easeOutElastic(float t) {
     float t2 = (t - 1) * (t - 1);
     return 1 - t2 * t2 * cos(t * PI * 4.5);
 }
 
-float easeInOutElastic(float t) {
+inline float easeInOutElastic(float t) {
     float t2;
     if (t < 0.45) {
         t2 = t * t;
@@ -159,15 +162,15 @@ float easeInOutElastic(float t) {
     }
 }
 
-float easeInBounce(float t) {
+inline float easeInBounce(float t) {
     return pow(2, 6 * (t - 1)) * abs(sin(t * PI * 3.5));
 }
 
-float easeOutBounce(float t) {
+inline float easeOutBounce(float t) {
     return 1 - pow(2, -6 * t) * abs(cos(t * PI * 3.5));
 }
 
-float easeInOutBounce(float t) {
+inline float easeInOutBounce(float t) {
     if (t < 0.5) {
         return 8 * pow(2, 8 * (t - 1)) * abs(sin(t * PI * 7));
     }
@@ -175,3 +178,5 @@ float easeInOutBounce(float t) {
         return 1 - 8 * pow(2, -8 * t) * abs(sin(t * PI * 7));
     }
 }
+
+#endif
